@@ -3,33 +3,33 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>net.ttddyy</groupId>
-  <artifactId>datasource-proxy</artifactId>
-  <version>2.0-SNAPSHOT</version>
+  <artifactId>datasource-proxy-r2dbc</artifactId>
+  <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>datasource-proxy</name>
-  <description>Provide a datasource proxy that can inject your own logic into all queries.</description>
-  <url>https://github.com/ttddyy/datasource-proxy/</url>
+  <name>datasource-proxy-r2dbc</name>
+  <description>datasource-proxy for r2dbc</description>
+  <url>https://github.com/ttddyy/datasource-proxy-r2dbc/</url>
 
   <licenses>
     <license>
-      <name>MIT License</name>
-      <url>http://www.opensource.org/licenses/MIT</url>
+      <name></name>
+      <url></url>
       <distribution>repo</distribution>
     </license>
   </licenses>
 
   <scm>
-    <connection>scm:git:git@github.com:ttddyy/datasource-proxy.git</connection>
-    <developerConnection>scm:git:git@github.com:ttddyy/datasource-proxy.git</developerConnection>
-    <url>git@github.com:ttddyy/datasource-proxy.git</url>
+    <connection>scm:git:git@github.com:ttddyy/datasource-proxy-r2dbc.git</connection>
+    <developerConnection>scm:git:git@github.com:ttddyy/datasource-proxy-r2dbc.git</developerConnection>
+    <url>git@github.com:ttddyy/datasource-proxy-r2dbc.git</url>
     <tag>HEAD</tag>
   </scm>
 
   <distributionManagement>
     <repository>
       <id>bintray</id>
-      <url>https://api.bintray.com/maven/ttddyy/maven/datasource-proxy</url>
+      <url>https://api.bintray.com/maven/ttddyy/maven/datasource-proxy-r2dbc</url>
     </repository>
     <snapshotRepository>
       <id>ossrh</id>
@@ -49,12 +49,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <r2dbc-spi.version>1.0.0.BUILD-SNAPSHOT</r2dbc-spi.version>
     <surefire.version>2.19.1</surefire.version>
-    <commons-logging.version>1.1.1</commons-logging.version>
-    <slf4j.version>1.7.12</slf4j.version>
-    <servlet-api.version>2.4</servlet-api.version>
-    <jsp-api.version>2.0</jsp-api.version>
-    <testcontainers.version>1.9.1</testcontainers.version>
     <hsqldb.version>2.3.5</hsqldb.version>
     <postgresql.version>42.2.1</postgresql.version>
     <mysql.version>6.0.6</mysql.version>
@@ -68,123 +64,6 @@
     <junit.platform.version>1.1.0</junit.platform.version>
   </properties>
   <profiles>
-
-    <!-- This profile is activated by src/build/settings.xml for deployment -->
-    <profile>
-      <id>ossrh</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.6</version>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.7</version>
-            <extensions>true</extensions>
-            <configuration>
-              <serverId>ossrh</serverId>
-              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <!-- This profile is used for generating docs that will be published on github -->
-    <profile>
-      <id>publish-doc</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.asciidoctor</groupId>
-            <artifactId>asciidoctor-maven-plugin</artifactId>
-            <configuration>
-              <attributes>
-                <insert-analytics>true</insert-analytics>
-              </attributes>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <configuration>
-              <!-- disable java8 doclint for @see reference to generic class -->
-              <additionalparam>-Xdoclint:none --allow-script-in-comments</additionalparam>
-              <footer>
-                <![CDATA[
-                <!-- Global site tag (gtag.js) - Google Analytics -->
-                <script async src="https://www.googletagmanager.com/gtag/js?id=UA-1318853-6"></script>
-                <script>
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-
-                  gtag('config', 'UA-1318853-6');
-                </script>
-                ]]>]
-              </footer>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <!--
-      This profile is used for running tests with all databases
-      How tests switch database is in DbTestUtils class.
-      This profile also runs regular tests which use HSQL.
-    -->
-    <profile>
-      <id>test-all-dbs</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>db-postgres</id>
-                <phase>test</phase>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-                <configuration>
-                  <systemPropertyVariables>
-                    <dsproxy.dbtype>postgres</dsproxy.dbtype>
-                  </systemPropertyVariables>
-                </configuration>
-              </execution>
-              <execution>
-                <id>db-mysql</id>
-                <phase>test</phase>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-                <configuration>
-                  <systemPropertyVariables>
-                    <dsproxy.dbtype>mysql</dsproxy.dbtype>
-                  </systemPropertyVariables>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
   </profiles>
 
   <build>
@@ -305,34 +184,31 @@
     </plugins>
   </build>
 
+  <repositories>
+    <repository>
+      <id>spring-snapshots</id>
+      <name>Spring Snapshots</name>
+      <url>https://repo.spring.io/snapshot</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>spring-milestones</id>
+      <name>Spring Milestones</name>
+      <url>https://repo.spring.io/milestone</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
   <dependencies>
 
     <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>${commons-logging.version}</version>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>${servlet-api.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>jsp-api</artifactId>
-      <version>${jsp-api.version}</version>
-      <scope>provided</scope>
+      <groupId>io.r2dbc</groupId>
+      <artifactId>r2dbc-spi</artifactId>
+      <version>${r2dbc-spi.version}</version>
     </dependency>
 
 
@@ -343,53 +219,6 @@
       <optional>true</optional>
     </dependency>
 
-
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${testcontainers.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>jcl-over-slf4j</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>mysql</artifactId>
-      <version>${testcontainers.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>jcl-over-slf4j</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.hsqldb</groupId>
-      <artifactId>hsqldb</artifactId>
-      <version>${hsqldb.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${postgresql.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>${mysql.version}</version>
-      <scope>test</scope>
-    </dependency>
 
     <dependency>
       <groupId>org.mockito</groupId>

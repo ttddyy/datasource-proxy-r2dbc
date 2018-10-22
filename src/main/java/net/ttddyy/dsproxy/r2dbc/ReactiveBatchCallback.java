@@ -11,7 +11,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -54,10 +53,6 @@ public class ReactiveBatchCallback extends CallbackSupport {
 
             // API defines "execute()" returns a publisher
             Publisher<? extends Result> publisher = (Publisher<? extends Result>) result;
-
-            // TODO: remove
-            String query = this.queries.stream().collect(joining(","));
-            System.out.println("Executing " + query);
 
             return interceptQueryExecution(publisher, proxyConfig.getListeners(), execInfo);
         }

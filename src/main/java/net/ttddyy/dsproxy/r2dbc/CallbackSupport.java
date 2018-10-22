@@ -35,6 +35,9 @@ public abstract class CallbackSupport {
                     listener.beforeQuery(executionInfo);
                 })
                 .concatWith(flux)
+                .doOnNext(result -> {
+                    // TODO: add listener callback for each query result
+                })
                 .doOnComplete(() -> {
                     executionInfo.setSuccess(true);
                 })

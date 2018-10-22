@@ -1,6 +1,5 @@
 package net.ttddyy.dsproxy.r2dbc;
 
-
 import net.ttddyy.dsproxy.r2dbc.core.Binding;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
@@ -12,37 +11,15 @@ import java.util.function.Function;
 import static java.util.stream.Collectors.joining;
 
 /**
- *
  * @author Tadaya Tsuyukubo
  */
 public class ExecutionInfoToString implements Function<ExecutionInfo, String> {
-
-    //    Name:DATA_SOURCE_PROXY, Time:6, Success:True,
-    //    Type:Prepared, Batch:True, QuerySize:1, BatchSize:3,
-    //    Query:["insert into post (title, version, id) values (?, ?, ?)"],
-    //    Params:[(Post no. 0, 0, 0), (Post no. 1, 0, 1), (Post no. 2, 0, 2)]
-
-    private BiConsumer<StringBuilder, QueryInfo> onQueryInfo = (sb, queryInfo) -> {
-        sb.append("\"");
-        sb.append(queryInfo.getQuery());
-        sb.append("\"");
-    };
-
-    private BiConsumer<StringBuilder, ExecutionInfo> onQueries = (sb, executionInfo) -> {
-
-        executionInfo.getQueries().forEach(queryInfo -> this.onQueryInfo.accept(sb, queryInfo));
-    };
 
     @Override
     public String apply(ExecutionInfo executionInfo) {
         StringBuilder sb = new StringBuilder();
 
         // Thread: name(id)
-        // Success
-        // Type: Batch/Statement
-        // BatchSize
-        // StatementSize
-
         sb.append("Thread:");
         //        sb.append(executionInfo.getThreadName());
         sb.append("(");

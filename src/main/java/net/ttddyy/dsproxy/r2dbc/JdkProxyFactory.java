@@ -17,22 +17,26 @@ public class JdkProxyFactory implements ProxyFactory {
 
     private ProxyConfig proxyConfig;
 
+    @Override
     public void setProxyConfig(ProxyConfig proxyConfig) {
         this.proxyConfig = proxyConfig;
     }
 
+    @Override
     public Connection createConnection(Connection connection) {
         return (Connection) Proxy.newProxyInstance(getClass().getClassLoader(),
                 new Class[] { Connection.class },
                 new ConnectionInvocationHandler(connection, this.proxyConfig));
     }
 
+    @Override
     public Batch<?> createBatch(Batch<?> batch) {
         return (Batch<?>) Proxy.newProxyInstance(getClass().getClassLoader(),
                 new Class[] { Batch.class },
                 new BatchInvocationHandler(batch, this.proxyConfig));
     }
 
+    @Override
     public Statement<?> createStatement(Statement<?> statement, String query) {
         return (Statement<?>) Proxy.newProxyInstance(getClass().getClassLoader(),
                 new Class[] { Statement.class },

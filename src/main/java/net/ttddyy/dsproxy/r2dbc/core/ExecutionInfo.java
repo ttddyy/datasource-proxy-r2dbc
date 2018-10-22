@@ -26,6 +26,8 @@ public class ExecutionInfo {
     private ExecutionType type;
     private int statementSize;  // num of Statement#add
     private Duration executeDuration = Duration.ZERO;
+    private String threadName;
+    private long threadId;
 
     private List<QueryInfo> queries = new ArrayList<>();
 
@@ -146,5 +148,21 @@ public class ExecutionInfo {
 
     public void setExecuteDuration(Duration executeDuration) {
         this.executeDuration = executeDuration;
+    }
+
+    public String getThreadName() {
+        return threadName;
+    }
+
+    public void setThreadName(String threadName) {
+        this.threadName = threadName;
+    }
+
+    public long getThreadId() {
+        return threadId;
+    }
+
+    public void setThreadId(long threadId) {
+        this.threadId = threadId;
     }
 }

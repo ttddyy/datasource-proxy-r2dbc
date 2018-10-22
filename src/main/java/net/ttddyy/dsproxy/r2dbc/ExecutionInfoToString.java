@@ -21,9 +21,9 @@ public class ExecutionInfoToString implements Function<ExecutionInfo, String> {
 
         // Thread: name(id)
         sb.append("Thread:");
-        //        sb.append(executionInfo.getThreadName());
+        sb.append(executionInfo.getThreadName());
         sb.append("(");
-        //        sb.append(executionInfo.getThreadId());
+        sb.append(executionInfo.getThreadId());
         sb.append(")");
 
         sb.append(" Success:");

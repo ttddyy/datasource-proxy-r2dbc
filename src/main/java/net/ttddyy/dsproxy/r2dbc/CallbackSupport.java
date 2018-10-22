@@ -1,6 +1,5 @@
 package net.ttddyy.dsproxy.r2dbc;
 
-import com.sun.jdi.ObjectReference;
 import io.r2dbc.spi.Result;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyDataSourceListener;
@@ -30,19 +29,26 @@ public abstract class CallbackSupport {
         }
     }
 
+    /**
+     * Augment query execution result to hook up listener lifecycle.
+     */
     protected Flux<? extends Result> interceptQueryExecution(Publisher<? extends Result> flux,
             ProxyDataSourceListener listener, ExecutionInfo executionInfo) {
 
         AtomicReference<Instant> startTimeHolder = new AtomicReference<>();
 
         // TODO: think about interceptor for doOnNext() -- each query execution
-        // TODO: get thread id & name
         return Flux.empty()
                 .ofType(Result.class)
                 .doOnSubscribe(s -> {
 
                     Instant startTime = this.clock.instant();
                     startTimeHolder.set(startTime);
+
+                    String threadName = Thread.currentThread().getName();
+                    long threadId = Thread.currentThread().getId();
+                    executionInfo.setThreadName(threadName);
+                    executionInfo.setThreadId(threadId);
 
                     listener.beforeQuery(executionInfo);
                 })
@@ -64,6 +70,11 @@ public abstract class CallbackSupport {
 
                     Duration executionDuration = Duration.between(startTime, currentTime);
                     executionInfo.setExecuteDuration(executionDuration);
+
+                    String threadName = Thread.currentThread().getName();
+                    long threadId = Thread.currentThread().getId();
+                    executionInfo.setThreadName(threadName);
+                    executionInfo.setThreadId(threadId);
 
                     listener.afterQuery(executionInfo);
                 });

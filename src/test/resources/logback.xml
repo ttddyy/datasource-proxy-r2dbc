@@ -1,8 +1,21 @@
 <configuration>
 
-  <logger name="org.testcontainers" level="INFO"/>
-  <logger name="org.apache.http" level="WARN"/>
-  <logger name="com.github.dockerjava" level="WARN"/>
-  <logger name="org.zeroturnaround.exec" level="WARN"/>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{HH:mm:ss.SSS} %-18thread %-55logger %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.testcontainers" level="INFO"/>
+    <logger name="com.github.dockerjava" level="WARN"/>
+    <logger name="net.ttddyy.dsproxy.r2dbc" level="INFO"/>
+    <logger name="io.r2dbc.client" level="INFO"/>
+    <logger name="io.r2dbc.postgresql" level="INFO"/>
+    <logger name="reactor.ipc.netty" level="WARN"/>
+    <logger name="stream" level="INFO"/>
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+    </root>
 
 </configuration>

@@ -1,6 +1,7 @@
 package net.ttddyy.dsproxy.r2dbc.core;
 
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,13 +19,13 @@ public class ExecutionInfo {
     private Method method;
     private Object[] methodArgs;
     private Object result;
-    private long elapsedTime;
     private Throwable throwable;
     private boolean isSuccess;
     private int batchSize;  // num of Batch#add
 
     private ExecutionType type;
     private int statementSize;  // num of Statement#add
+    private Duration executeDuration = Duration.ZERO;
 
     private List<QueryInfo> queries = new ArrayList<>();
 
@@ -72,20 +73,6 @@ public class ExecutionInfo {
 
     public void setResult(Object result) {
         this.result = result;
-    }
-
-    /**
-     * Duration of query execution.
-     * Only available after successful query execution.
-     *
-     * @return query execution time
-     */
-    public long getElapsedTime() {
-        return elapsedTime;
-    }
-
-    public void setElapsedTime(long elapsedTime) {
-        this.elapsedTime = elapsedTime;
     }
 
     public Throwable getThrowable() {
@@ -151,5 +138,13 @@ public class ExecutionInfo {
 
     public void setStatementSize(int statementSize) {
         this.statementSize = statementSize;
+    }
+
+    public Duration getExecuteDuration() {
+        return executeDuration;
+    }
+
+    public void setExecuteDuration(Duration executeDuration) {
+        this.executeDuration = executeDuration;
     }
 }

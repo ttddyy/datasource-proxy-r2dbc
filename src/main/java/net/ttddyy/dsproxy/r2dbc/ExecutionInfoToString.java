@@ -30,7 +30,7 @@ public class ExecutionInfoToString implements Function<ExecutionInfo, String> {
         sb.append(executionInfo.isSuccess() ? "True" : "False");
 
         sb.append(" Time:");
-        sb.append(executionInfo.getElapsedTime());
+        sb.append(executionInfo.getExecuteDuration().toMillis());
 
         sb.append(" Type:");
         if (executionInfo.getType() == ExecutionType.BATCH) {

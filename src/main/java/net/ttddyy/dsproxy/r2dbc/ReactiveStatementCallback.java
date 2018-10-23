@@ -68,7 +68,7 @@ public class ReactiveStatementCallback extends CallbackSupport {
             ExecutionInfo execInfo = new ExecutionInfo();
             execInfo.setType(ExecutionType.STATEMENT);
             execInfo.setQueries(queries);
-            execInfo.setStatementSize(this.bindings.size());
+            execInfo.setBindingsSize(this.bindings.size());
             execInfo.setMethod(method);
             execInfo.setMethodArgs(args);
 

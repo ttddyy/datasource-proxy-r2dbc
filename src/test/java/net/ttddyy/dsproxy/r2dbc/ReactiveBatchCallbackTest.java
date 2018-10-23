@@ -54,7 +54,7 @@ public class ReactiveBatchCallbackTest {
 
         assertThat(beforeQueryInfo).isNotNull();
         assertThat(beforeQueryInfo.getBatchSize()).isEqualTo(2);
-        assertThat(beforeQueryInfo.getStatementSize()).isEqualTo(0);
+        assertThat(beforeQueryInfo.getBindingsSize()).isEqualTo(0);
         assertThat(beforeQueryInfo.isSuccess()).isTrue();
         assertThat(beforeQueryInfo.getType()).isEqualTo(ExecutionType.BATCH);
         assertThat(beforeQueryInfo.getQueries())
@@ -63,7 +63,7 @@ public class ReactiveBatchCallbackTest {
 
         assertThat(afterQueryInfo).isNotNull();
         assertThat(afterQueryInfo.getBatchSize()).isEqualTo(2);
-        assertThat(afterQueryInfo.getStatementSize()).isEqualTo(0);
+        assertThat(afterQueryInfo.getBindingsSize()).isEqualTo(0);
         assertThat(afterQueryInfo.isSuccess()).isTrue();
         assertThat(afterQueryInfo.getType()).isEqualTo(ExecutionType.BATCH);
         assertThat(afterQueryInfo.getQueries())

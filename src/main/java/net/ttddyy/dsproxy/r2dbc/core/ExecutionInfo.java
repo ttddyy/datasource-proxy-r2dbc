@@ -24,7 +24,7 @@ public class ExecutionInfo {
     private int batchSize;  // num of Batch#add
 
     private ExecutionType type;
-    private int statementSize;  // num of Statement#add
+    private int bindingsSize;  // num of Statement#add
     private Duration executeDuration = Duration.ZERO;
     private String threadName;
     private long threadId;
@@ -134,12 +134,12 @@ public class ExecutionInfo {
         this.type = type;
     }
 
-    public int getStatementSize() {
-        return statementSize;
+    public int getBindingsSize() {
+        return bindingsSize;
     }
 
-    public void setStatementSize(int statementSize) {
-        this.statementSize = statementSize;
+    public void setBindingsSize(int bindingsSize) {
+        this.bindingsSize = bindingsSize;
     }
 
     public Duration getExecuteDuration() {

@@ -44,8 +44,8 @@ public class ExecutionInfoToString implements Function<ExecutionInfo, String> {
         sb.append(" BatchSize:");
         sb.append(executionInfo.getBatchSize());
 
-        sb.append(" StatementSize:");
-        sb.append(executionInfo.getStatementSize());
+        sb.append(" BindingsSize:");
+        sb.append(executionInfo.getBindingsSize());
 
         sb.append(" Query:[");
         String queries = executionInfo.getQueries().stream()

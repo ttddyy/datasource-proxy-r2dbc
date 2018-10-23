@@ -10,13 +10,13 @@ import reactor.core.publisher.Mono;
  *
  * @author Tadaya Tsuyukubo
  */
-public class DelegatingConnectionFactory implements ConnectionFactory {
+public class ProxyConnectionFactory implements ConnectionFactory {
 
     private ConnectionFactory delegate;
 
     private ProxyConfig proxyConfig;
 
-    public DelegatingConnectionFactory(ConnectionFactory delegate, ProxyConfig proxyConfig) {
+    public ProxyConnectionFactory(ConnectionFactory delegate, ProxyConfig proxyConfig) {
         this.delegate = delegate;
         this.proxyConfig = proxyConfig;
     }

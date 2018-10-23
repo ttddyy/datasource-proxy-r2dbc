@@ -72,10 +72,10 @@ final class PostgresqlExample implements Example<String> {
         ProxyConfig proxyConfig = new ProxyConfig();
         proxyConfig.addListener(listener);
 
-        DelegatingConnectionFactory delegatingConnectionFactory =
-                new DelegatingConnectionFactory(connectionFactory, proxyConfig);
+        ConnectionFactory proxyConnectionFactory =
+                new ProxyConnectionFactory(connectionFactory, proxyConfig);
 
-        this.r2dbc = new R2dbc(delegatingConnectionFactory);
+        this.r2dbc = new R2dbc(proxyConnectionFactory);
     }
 
     @Override

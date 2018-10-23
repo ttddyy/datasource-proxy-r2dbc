@@ -23,10 +23,12 @@ public class ReactiveBatchCallback extends CallbackSupport {
     private Batch<?> batch;
     private ProxyConfig proxyConfig;
 
+    private String connectionId;
     private List<String> queries = new ArrayList<>();
 
-    public ReactiveBatchCallback(Batch<?> batch, ProxyConfig proxyConfig) {
+    public ReactiveBatchCallback(Batch<?> batch, String connectionId, ProxyConfig proxyConfig) {
         this.batch = batch;
+        this.connectionId = connectionId;
         this.proxyConfig = proxyConfig;
     }
 
@@ -50,6 +52,7 @@ public class ReactiveBatchCallback extends CallbackSupport {
             execInfo.setBatchSize(this.queries.size());
             execInfo.setMethod(method);
             execInfo.setMethodArgs(args);
+            execInfo.setConnectionId(this.connectionId);
 
             // API defines "execute()" returns a publisher
             Publisher<? extends Result> publisher = (Publisher<? extends Result>) result;

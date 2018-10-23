@@ -25,14 +25,16 @@ public class ReactiveStatementCallback extends CallbackSupport {
     private Statement<?> statement;
     private ProxyConfig proxyConfig;
 
+    private String connectionId;
     private String query;
 
     private List<Bindings> bindings = new ArrayList<>();
     private int currentBindingsIndex = 0;
 
-    public ReactiveStatementCallback(Statement<?> statement, String query, ProxyConfig proxyConfig) {
+    public ReactiveStatementCallback(Statement<?> statement, String query, String connectionId, ProxyConfig proxyConfig) {
         this.statement = statement;
         this.query = query;
+        this.connectionId = connectionId;
         this.proxyConfig = proxyConfig;
     }
 
@@ -71,6 +73,7 @@ public class ReactiveStatementCallback extends CallbackSupport {
             execInfo.setBindingsSize(this.bindings.size());
             execInfo.setMethod(method);
             execInfo.setMethodArgs(args);
+            execInfo.setConnectionId(this.connectionId);
 
             // API defines "execute()" returns a publisher
             Publisher<? extends Result> publisher = (Publisher<? extends Result>) result;

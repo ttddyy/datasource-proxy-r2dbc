@@ -1,6 +1,8 @@
 package net.ttddyy.dsproxy.r2dbc;
 
 import net.ttddyy.dsproxy.r2dbc.core.CompositeProxyDataSourceListener;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionIdManager;
+import net.ttddyy.dsproxy.r2dbc.core.DefaultConnectionIdManager;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyDataSourceListener;
 
 /**
@@ -10,6 +12,8 @@ import net.ttddyy.dsproxy.r2dbc.core.ProxyDataSourceListener;
 public class ProxyConfig {
 
     private CompositeProxyDataSourceListener listeners = new CompositeProxyDataSourceListener();
+
+    private ConnectionIdManager connectionIdManager = new DefaultConnectionIdManager();
 
     private ProxyFactory proxyFactory = new JdkProxyFactory();
 
@@ -31,5 +35,13 @@ public class ProxyConfig {
 
     public void addListener(ProxyDataSourceListener listener) {
         this.listeners.add(listener);
+    }
+
+    public ConnectionIdManager getConnectionIdManager() {
+        return connectionIdManager;
+    }
+
+    public void setConnectionIdManager(ConnectionIdManager connectionIdManager) {
+        this.connectionIdManager = connectionIdManager;
     }
 }

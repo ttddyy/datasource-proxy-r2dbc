@@ -15,9 +15,11 @@ public class ReactiveConnectionCallback extends CallbackSupport {
 
     private Connection connection;
     private ProxyConfig proxyConfig;
+    private String connectionId;
 
-    public ReactiveConnectionCallback(Connection connection, ProxyConfig proxyConfig) {
+    public ReactiveConnectionCallback(Connection connection, String connectionId, ProxyConfig proxyConfig) {
         this.connection = connection;
+        this.connectionId = connectionId;
         this.proxyConfig = proxyConfig;
     }
 
@@ -28,10 +30,10 @@ public class ReactiveConnectionCallback extends CallbackSupport {
         Object result = proceedExecution(method, this.connection, args);
 
         if ("createBatch".equals(methodName)) {
-            return this.proxyConfig.getProxyFactory().createBatch((Batch) result);
+            return this.proxyConfig.getProxyFactory().createBatch((Batch) result, this.connectionId);
         } else if ("createStatement".equals(methodName)) {
             String query = (String) args[0];
-            return this.proxyConfig.getProxyFactory().createStatement((Statement) result, query);
+            return this.proxyConfig.getProxyFactory().createStatement((Statement) result, query, this.connectionId);
         }
 
         return result;

@@ -29,10 +29,11 @@ public class ReactiveBatchCallbackTest {
     void batchOperation() throws Throwable {
         TestProxyDataSourceListener testListener = new TestProxyDataSourceListener();
 
+        String connectionId = "100";
         ProxyConfig proxyConfig = new ProxyConfig();
         proxyConfig.addListener(testListener);
         Batch batch = mock(Batch.class);
-        ReactiveBatchCallback callback = new ReactiveBatchCallback(batch, proxyConfig);
+        ReactiveBatchCallback callback = new ReactiveBatchCallback(batch, connectionId, proxyConfig);
 
         // mock batch execution
         when(batch.execute()).thenReturn(Flux.empty());
@@ -57,6 +58,7 @@ public class ReactiveBatchCallbackTest {
         assertThat(beforeQueryInfo.getBindingsSize()).isEqualTo(0);
         assertThat(beforeQueryInfo.isSuccess()).isTrue();
         assertThat(beforeQueryInfo.getType()).isEqualTo(ExecutionType.BATCH);
+        assertThat(beforeQueryInfo.getConnectionId()).isEqualTo(connectionId);
         assertThat(beforeQueryInfo.getQueries())
                 .extracting(QueryInfo::getQuery)
                 .containsExactly("QUERY-1", "QUERY-2");
@@ -66,6 +68,7 @@ public class ReactiveBatchCallbackTest {
         assertThat(afterQueryInfo.getBindingsSize()).isEqualTo(0);
         assertThat(afterQueryInfo.isSuccess()).isTrue();
         assertThat(afterQueryInfo.getType()).isEqualTo(ExecutionType.BATCH);
+        assertThat(afterQueryInfo.getConnectionId()).isEqualTo(connectionId);
         assertThat(afterQueryInfo.getQueries())
                 .extracting(QueryInfo::getQuery)
                 .containsExactly("QUERY-1", "QUERY-2");

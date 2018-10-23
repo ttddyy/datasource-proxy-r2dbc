@@ -26,6 +26,9 @@ public class ExecutionInfoToString implements Function<ExecutionInfo, String> {
         sb.append(executionInfo.getThreadId());
         sb.append(")");
 
+        sb.append(" Connection:");
+        sb.append(executionInfo.getConnectionId());
+
         sb.append(" Success:");
         sb.append(executionInfo.isSuccess() ? "True" : "False");
 

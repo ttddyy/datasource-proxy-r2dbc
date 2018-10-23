@@ -12,10 +12,10 @@ public interface ProxyFactory {
 
     void setProxyConfig(ProxyConfig proxyConfig);
 
-    Connection createConnection(Connection connection);
+    Connection createConnection(Connection connection, String connectionId);
 
-    Batch<?> createBatch(Batch<?> batch);
+    Batch<?> createBatch(Batch<?> batch, String connectionId);
 
-    Statement<?> createStatement(Statement<?> statement, String query);
+    Statement<?> createStatement(Statement<?> statement, String query, String connectionId);
 
 }

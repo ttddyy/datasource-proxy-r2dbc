@@ -20,17 +20,20 @@ information.
 ```sql
 # Statement with no bindings
 # 
-Thread:reactor-tcp-nio-1(30) Success:True Time:34 Type:Statement BatchSize:0 BindingsSize:0 
+Thread:reactor-tcp-nio-1(30) Connection:1 Success:True Time:34
+Type:Statement BatchSize:0 BindingsSize:0 
 Query:["SELECT value FROM test"], Bindings:[]
 
 # Batch query
 #
-Thread:reactor-tcp-nio-3(32) Success:True Time:4 Type:Batch BatchSize:2 BindingsSize:0
+Thread:reactor-tcp-nio-3(32) Connection:2 Success:True Time:4
+Type:Batch BatchSize:2 BindingsSize:0
 Query:["INSERT INTO test VALUES(200)","SELECT value FROM test"], Bindings:[]
 
 # Statement with multiple bindings
 #
-Thread:reactor-tcp-nio-1(30) Success:True Time:21 Type:Statement BatchSize:0 BindingsSize:2
+Thread:reactor-tcp-nio-1(30) Connection:3 Success:True Time:21
+Type:Statement BatchSize:0 BindingsSize:2
 Query:["INSERT INTO test VALUES ($1)"], Bindings:[(100),(200)]
 ```
 

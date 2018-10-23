@@ -25,7 +25,10 @@ public class ProxyConnectionFactory implements ConnectionFactory {
     public Publisher<? extends Connection> create() {
         Publisher<? extends Connection> pub = this.delegate.create();
         return Mono.from(pub)
-                .map(proxyConfig.getProxyFactory()::createConnection);
+                .map(connection -> {
+                    String connectionId = this.proxyConfig.getConnectionIdManager().getId(connection);
+                    return proxyConfig.getProxyFactory().createConnection(connection, connectionId);
+                });
     }
 
     @Override

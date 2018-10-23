@@ -14,8 +14,8 @@ import java.util.List;
  */
 public class ExecutionInfo {
 
-    private String dataSourceName;
-    private String connectionId;
+    private String dataSourceName = "";
+    private String connectionId = "";
     private Method method;
     private Object[] methodArgs;
     private Object result;
@@ -26,7 +26,7 @@ public class ExecutionInfo {
     private ExecutionType type;
     private int bindingsSize;  // num of Statement#add
     private Duration executeDuration = Duration.ZERO;
-    private String threadName;
+    private String threadName = "";
     private long threadId;
 
     private List<QueryInfo> queries = new ArrayList<>();

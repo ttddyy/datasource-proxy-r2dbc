@@ -63,11 +63,13 @@ final class PostgresqlExample implements Example<String> {
         ConnectionFactory connectionFactory = new PostgresqlConnectionFactory(this.configuration);
 
         Logger logger = Loggers.getLogger(getClass());
+        ExecutionInfoFormatter formatter = ExecutionInfoFormatter.showAll();
+
         // TODO: better API
         ProxyDataSourceListener listener = new ProxyDataSourceListener() {
             @Override
             public void afterQuery(ExecutionInfo execInfo) {
-                String queryLog = new ExecutionInfoToString().apply(execInfo);
+                String queryLog = formatter.format(execInfo);
                 System.out.println("QUERYLOG::" + queryLog);
 //                logger.info("QUERYLOG:: " + queryLog);
             }

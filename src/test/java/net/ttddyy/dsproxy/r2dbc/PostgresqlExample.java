@@ -22,6 +22,7 @@ import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyDataSourceListener;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -36,6 +37,9 @@ import reactor.util.Loggers;
 import reactor.util.annotation.Nullable;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static java.lang.String.format;
 
 /**
  * Copy from r2dbc-client
@@ -65,7 +69,24 @@ final class PostgresqlExample implements Example<String> {
             public void afterQuery(ExecutionInfo execInfo) {
                 String queryLog = new ExecutionInfoToString().apply(execInfo);
                 System.out.println("QUERYLOG::" + queryLog);
-                logger.info("QUERYLOG:: " + queryLog);
+//                logger.info("QUERYLOG:: " + queryLog);
+            }
+
+            private AtomicLong sequenceNumber = new AtomicLong(1);
+
+            @Override
+            public void afterMethod(MethodExecutionInfo executionInfo) {
+
+                long seq = sequenceNumber.getAndIncrement();
+                String connectionId = executionInfo.getConnectionId();
+                long  executionTime = executionInfo.getExecuteDuration().toMillis();
+                String targetClass = executionInfo.getTarget().getClass().getSimpleName();
+                String methodName = executionInfo.getMethod().getName();
+                long threadId = executionInfo.getThreadId();
+
+
+                System.out.println(format("%2d Thread:%d Connection:%s Time:%d %s#%s",
+                        seq, threadId, connectionId, executionTime, targetClass, methodName));
             }
         };
 

@@ -67,6 +67,20 @@ interface Example<T> {
             .verifyComplete();
     }
 
+
+    @Test
+    default void simpleTransaction() {
+        getJdbcOperations().execute("INSERT INTO test VALUES (100)");
+
+        getR2dbc()
+                .withHandle(handle -> handle
+                        .inTransaction(h1 -> h1
+                                .execute("INSERT INTO test VALUES ($1)", 200)))
+                .as(StepVerifier::create)
+                .expectNext(1).as("rows inserted")
+                .verifyComplete();
+    }
+
     @Test
     default void compoundStatement() {
         getJdbcOperations().execute("INSERT INTO test VALUES (100)");

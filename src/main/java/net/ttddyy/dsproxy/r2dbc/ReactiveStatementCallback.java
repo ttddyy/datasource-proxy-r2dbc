@@ -41,7 +41,7 @@ public class ReactiveStatementCallback extends CallbackSupport {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
         String methodName = method.getName();
-        Object result = proceedExecution(method, this.statement, args);
+        Object result = proceedExecution(method, this.statement, args, this.proxyConfig.getListeners(), this.connectionId);
 
         // add, bind, bindNull, execute
         if ("add".equals(methodName)) {
@@ -81,7 +81,7 @@ public class ReactiveStatementCallback extends CallbackSupport {
             return interceptQueryExecution(publisher, proxyConfig.getListeners(), execInfo);
         }
 
-        return proceedExecution(method, this.statement, args);
+        return result;
     }
 
 }

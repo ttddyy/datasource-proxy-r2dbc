@@ -27,7 +27,7 @@ public class ReactiveConnectionCallback extends CallbackSupport {
 
         String methodName = method.getName();
 
-        Object result = proceedExecution(method, this.connection, args);
+        Object result = proceedExecution(method, this.connection, args, this.proxyConfig.getListeners(), this.connectionId);
 
         if ("createBatch".equals(methodName)) {
             return this.proxyConfig.getProxyFactory().createBatch((Batch) result, this.connectionId);

@@ -12,6 +12,16 @@ public class CompositeProxyDataSourceListener implements ProxyDataSourceListener
     private List<ProxyDataSourceListener> listeners = new ArrayList<>();
 
     @Override
+    public void beforeMethod(MethodExecutionInfo executionInfo) {
+        this.listeners.forEach(listener -> listener.beforeMethod(executionInfo));
+    }
+
+    @Override
+    public void afterMethod(MethodExecutionInfo executionInfo) {
+        this.listeners.forEach(listener -> listener.afterMethod(executionInfo));
+    }
+
+    @Override
     public void beforeQuery(ExecutionInfo execInfo) {
         this.listeners.forEach(listener -> listener.beforeQuery(execInfo));
     }

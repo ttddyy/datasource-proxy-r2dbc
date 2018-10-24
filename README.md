@@ -4,7 +4,7 @@
 
 ## About
 
-Provide listener for R2DBC query executions and method invocations(TBD).
+Provide listener for R2DBC query executions and method invocations.
 
 ### Listener API
 
@@ -35,6 +35,68 @@ Query:["INSERT INTO test VALUES(200)","SELECT value FROM test"], Bindings:[]
 Thread:reactor-tcp-nio-1(30) Connection:3 Success:True Time:21
 Type:Statement BatchSize:0 BindingsSize:2
 Query:["INSERT INTO test VALUES ($1)"], Bindings:[(100),(200)]
+```
+
+### Method tracing
+
+When any methods on `Connection`, `Batch`, or `Statement` are invoked,
+_"beforeMethod()/afterMethod()"_ on listener is called.
+
+This example shows how to print out invoked methods with some additional info.
+Essentially, it displays interaction with R2DBC SPI for query execution.
+
+
+*Sample*
+
+```java
+// Simple Transaction Example
+getR2dbc()
+  .withHandle(handle -> handle
+    .inTransaction(h -> h.execute("INSERT INTO test VALUES ($1)", 200)))
+  .subscribe();
+```
+
+Setup:
+```java
+ProxyDataSourceListener listener = new ProxyDataSourceListener() {
+    private AtomicLong sequenceNumber = new AtomicLong(1);
+
+    // This method is called after any invocation on Connection, Batch, and Statement
+    @Override
+    public void afterMethod(MethodExecutionInfo executionInfo) {
+
+        // collect invoked method information
+        long seq = sequenceNumber.getAndIncrement();
+        String connectionId = executionInfo.getConnectionId();
+        long  executionTime = executionInfo.getExecuteDuration().toMillis();
+        String targetClass = executionInfo.getTarget().getClass().getSimpleName();
+        String methodName = executionInfo.getMethod().getName();
+        long threadId = executionInfo.getThreadId();
+
+        System.out.println(format("%2d: Thread:%d Connection:%s Time:%d %s#%s()",
+                seq, threadId, connectionId, executionTime, targetClass, methodName));
+    }
+};
+
+// register the listener and create a proxy ConnectionFactory
+ProxyConfig proxyConfig = new ProxyConfig();
+proxyConfig.addListener(listener);
+
+ConnectionFactory proxyConnectionFactory =
+        new ProxyConnectionFactory(connectionFactory, proxyConfig);
+
+this.r2dbc = new R2dbc(proxyConnectionFactory);
+```
+
+Output:
+```sql
+ 1: Thread:0 Connection:1 Time:4 PostgresqlConnection#createStatement()
+ 2: Thread:0 Connection:1 Time:6 ExtendedQueryPostgresqlStatement#bind()
+ 3: Thread:0 Connection:1 Time:0 ExtendedQueryPostgresqlStatement#add()
+ 4: Thread:30 Connection:1 Time:14 PostgresqlConnection#beginTransaction()
+ 5: Thread:30 Connection:1 Time:38 ExtendedQueryPostgresqlStatement#execute()
+ 6: Thread:30 Connection:1 Time:7 PostgresqlConnection#commitTransaction()
+ 7: Thread:30 Connection:1 Time:10 PostgresqlConnection#close()
 ```
 
 

@@ -85,7 +85,7 @@ final class PostgresqlExample implements Example<String> {
                 long threadId = executionInfo.getThreadId();
 
 
-                System.out.println(format("%2d Thread:%d Connection:%s Time:%d %s#%s",
+                System.out.println(format("%2d: Thread:%d Connection:%s Time:%d %s#%s()",
                         seq, threadId, connectionId, executionTime, targetClass, methodName));
             }
         };

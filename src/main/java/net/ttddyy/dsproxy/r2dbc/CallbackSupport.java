@@ -58,7 +58,7 @@ public abstract class CallbackSupport {
 
                         executionInfo.setProxyEventType(ProxyEventType.BEFORE_METHOD);
 
-                        listener.beforeMethod(executionInfo);
+                        listener.onMethodExecution(executionInfo);
                     })
                     .concatWith(result)
                     .doOnError(throwable -> {
@@ -79,14 +79,14 @@ public abstract class CallbackSupport {
 
                         executionInfo.setProxyEventType(ProxyEventType.AFTER_METHOD);
 
-                        listener.afterMethod(executionInfo);
+                        listener.onMethodExecution(executionInfo);
                     });
 
 
         } else {
 
             executionInfo.setProxyEventType(ProxyEventType.BEFORE_METHOD);
-            listener.beforeMethod(executionInfo);
+            listener.onMethodExecution(executionInfo);
 
             Instant startTime = this.clock.instant();
 
@@ -109,7 +109,7 @@ public abstract class CallbackSupport {
                 executionInfo.setExecuteDuration(executionDuration);
 
                 executionInfo.setProxyEventType(ProxyEventType.AFTER_METHOD);
-                listener.afterMethod(executionInfo);
+                listener.onMethodExecution(executionInfo);
             }
             return result;
 
@@ -140,7 +140,7 @@ public abstract class CallbackSupport {
 
                     executionInfo.setProxyEventType(ProxyEventType.BEFORE_QUERY);
 
-                    listener.beforeQuery(executionInfo);
+                    listener.onQueryExecution(executionInfo);
                 })
                 .concatWith(flux)
                 .doOnNext(result -> {
@@ -168,7 +168,7 @@ public abstract class CallbackSupport {
 
                     executionInfo.setProxyEventType(ProxyEventType.AFTER_QUERY);
 
-                    listener.afterQuery(executionInfo);
+                    listener.onQueryExecution(executionInfo);
                 });
 
     }

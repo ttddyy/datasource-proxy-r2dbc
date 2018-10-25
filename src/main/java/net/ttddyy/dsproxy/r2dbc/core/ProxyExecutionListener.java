@@ -11,6 +11,25 @@ import io.r2dbc.spi.Statement;
  */
 public interface ProxyExecutionListener {
 
+
+    default void onMethodExecution(MethodExecutionInfo executionInfo) {
+        ProxyEventType eventType = executionInfo.getProxyEventType();
+        if (eventType == ProxyEventType.BEFORE_METHOD) {
+            beforeMethod(executionInfo);
+        } else if (eventType == ProxyEventType.AFTER_METHOD) {
+            afterMethod(executionInfo);
+        }
+    }
+
+    default void onQueryExecution(QueryExecutionInfo executionInfo) {
+        ProxyEventType eventType = executionInfo.getProxyEventType();
+        if (eventType == ProxyEventType.BEFORE_QUERY) {
+            beforeQuery(executionInfo);
+        } else if (eventType == ProxyEventType.AFTER_QUERY) {
+            afterQuery(executionInfo);
+        }
+    }
+
     /**
      * Called before every invocation of methods.
      *

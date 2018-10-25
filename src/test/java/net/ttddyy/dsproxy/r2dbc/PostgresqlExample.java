@@ -21,9 +21,6 @@ import io.r2dbc.client.R2dbc;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
-import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
-import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
-import net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -60,30 +57,23 @@ final class PostgresqlExample implements Example<String> {
         ConnectionFactory connectionFactory = new PostgresqlConnectionFactory(this.configuration);
 
         Logger logger = Loggers.getLogger(getClass());
+
         ExecutionInfoFormatter queryExecutionFormatter = ExecutionInfoFormatter.showAll();
         MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
-        // TODO: better API
-        ProxyExecutionListener listener = new ProxyExecutionListener() {
-            @Override
-            public void afterQuery(QueryExecutionInfo execInfo) {
-                String queryLog = queryExecutionFormatter.format(execInfo);
-                System.out.println("QUERYLOG::" + queryLog);
-//                logger.info("QUERYLOG:: " + queryLog);
-            }
-
-            @Override
-            public void afterMethod(MethodExecutionInfo executionInfo) {
-                String methodLog = methodExecutionFormatter.format(executionInfo);
-                System.out.println(methodLog);
-            }
-        };
-
-        ProxyConfig proxyConfig = new ProxyConfig();
-        proxyConfig.addListener(listener);
-
         ConnectionFactory proxyConnectionFactory =
-                new ProxyConnectionFactory(connectionFactory, proxyConfig);
+                ProxyConnectionFactory.of(connectionFactory)
+                        .onAfterMethod(execInfo -> {
+                            execInfo.map(methodExecutionFormatter::format)
+                                    .doOnNext(System.out::println)
+                                    .subscribe();
+                        })
+                        .onAfterQuery(execInfo -> {
+                            execInfo.map(queryExecutionFormatter::format)
+                                    .doOnNext(System.out::println)
+                                    .subscribe();
+                        })
+                ;
 
         this.r2dbc = new R2dbc(proxyConnectionFactory);
     }

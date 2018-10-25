@@ -58,23 +58,16 @@ getR2dbc()
 
 Setup:
 ```java
+// converter: from MethodExecutionInfo to String
+MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
+
 ProxyDataSourceListener listener = new ProxyDataSourceListener() {
-    private AtomicLong sequenceNumber = new AtomicLong(1);
 
     // This method is called after any invocation on Connection, Batch, and Statement
     @Override
     public void afterMethod(MethodExecutionInfo executionInfo) {
-
-        // collect invoked method information
-        long seq = sequenceNumber.getAndIncrement();
-        String connectionId = executionInfo.getConnectionId();
-        long  executionTime = executionInfo.getExecuteDuration().toMillis();
-        String targetClass = executionInfo.getTarget().getClass().getSimpleName();
-        String methodName = executionInfo.getMethod().getName();
-        long threadId = executionInfo.getThreadId();
-
-        System.out.println(format("%2d: Thread:%d Connection:%s Time:%d %s#%s()",
-                seq, threadId, connectionId, executionTime, targetClass, methodName));
+        String methodLog = methodExecutionFormatter.format(executionInfo);
+        System.out.println(methodLog);
     }
 };
 
@@ -120,12 +113,14 @@ Wrap original `ConnectionFactory` by `ProxyConnectionFactory` and pass it to R2D
 
   Logger logger = Loggers.getLogger(getClass());
 
+  ExecutionInfoFormatter queryExecutionFormatter = ExecutionInfoFormatter.showAll();
+
   // create listener   TODO: better API
   ProxyDataSourceListener listener = new ProxyDataSourceListener() {
       @Override
       public void afterQuery(ExecutionInfo execInfo) {
           // construct query log string
-          String queryLog = new ExecutionInfoToString().apply(execInfo);
+          String queryLog = queryExecutionFormatter.format(execInfo);
 
           System.out.println(queryLog);
           // logger.info(queryLog);  // or write it to logger

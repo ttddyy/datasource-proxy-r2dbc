@@ -3,8 +3,8 @@ package net.ttddyy.dsproxy.r2dbc;
 import io.r2dbc.spi.Result;
 import io.r2dbc.spi.Statement;
 import net.ttddyy.dsproxy.r2dbc.core.Bindings;
-import net.ttddyy.dsproxy.r2dbc.core.ExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
+import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 import org.reactivestreams.Publisher;
 
@@ -62,12 +62,12 @@ public class ReactiveStatementCallback extends CallbackSupport {
             // TODO: impl
         } else if ("execute".equals(methodName)) {
 
-            // build ExecutionInfo  TODO: improve
+            // build QueryExecutionInfo  TODO: improve
             QueryInfo queryInfo = new QueryInfo(this.query);
             queryInfo.getBindingsList().addAll(this.bindings);
             List<QueryInfo> queries = Stream.of(queryInfo).collect(toList());
 
-            ExecutionInfo execInfo = new ExecutionInfo();
+            QueryExecutionInfo execInfo = new QueryExecutionInfo();
             execInfo.setType(ExecutionType.STATEMENT);
             execInfo.setQueries(queries);
             execInfo.setBindingsSize(this.bindings.size());

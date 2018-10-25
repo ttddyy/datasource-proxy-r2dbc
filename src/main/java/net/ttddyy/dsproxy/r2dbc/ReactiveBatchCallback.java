@@ -2,8 +2,8 @@ package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Result;
-import net.ttddyy.dsproxy.r2dbc.core.ExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
+import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 import org.reactivestreams.Publisher;
 
@@ -46,7 +46,7 @@ public class ReactiveBatchCallback extends CallbackSupport {
                     .map(QueryInfo::new)
                     .collect(toList());
 
-            ExecutionInfo execInfo = new ExecutionInfo();
+            QueryExecutionInfo execInfo = new QueryExecutionInfo();
             execInfo.setType(ExecutionType.BATCH);
             execInfo.setQueries(queryInfoList);
             execInfo.setBatchSize(this.queries.size());

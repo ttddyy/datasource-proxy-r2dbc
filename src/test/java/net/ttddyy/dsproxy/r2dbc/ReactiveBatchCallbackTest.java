@@ -2,8 +2,8 @@ package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Result;
-import net.ttddyy.dsproxy.r2dbc.core.ExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
+import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
@@ -50,8 +50,8 @@ public class ReactiveBatchCallbackTest {
         StepVerifier.create((Publisher<? extends Result>) result)
                 .verifyComplete();
 
-        ExecutionInfo beforeQueryInfo = testListener.getBeforeQueryExecutionInfo();
-        ExecutionInfo afterQueryInfo = testListener.getAfterQueryExecutionInfo();
+        QueryExecutionInfo beforeQueryInfo = testListener.getBeforeQueryExecutionInfo();
+        QueryExecutionInfo afterQueryInfo = testListener.getAfterQueryExecutionInfo();
 
         assertThat(beforeQueryInfo).isNotNull();
         assertThat(beforeQueryInfo.getBatchSize()).isEqualTo(2);

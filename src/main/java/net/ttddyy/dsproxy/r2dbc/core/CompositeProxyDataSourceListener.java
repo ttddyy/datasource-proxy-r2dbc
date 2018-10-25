@@ -22,12 +22,12 @@ public class CompositeProxyDataSourceListener implements ProxyDataSourceListener
     }
 
     @Override
-    public void beforeQuery(ExecutionInfo execInfo) {
+    public void beforeQuery(QueryExecutionInfo execInfo) {
         this.listeners.forEach(listener -> listener.beforeQuery(execInfo));
     }
 
     @Override
-    public void afterQuery(ExecutionInfo execInfo) {
+    public void afterQuery(QueryExecutionInfo execInfo) {
         this.listeners.forEach(listener -> listener.afterQuery(execInfo));
     }
 

@@ -1,7 +1,7 @@
 package net.ttddyy.dsproxy.r2dbc;
 
 import net.ttddyy.dsproxy.r2dbc.core.Binding;
-import net.ttddyy.dsproxy.r2dbc.core.ExecutionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 
@@ -14,15 +14,15 @@ import java.util.function.Function;
 import static java.util.stream.Collectors.joining;
 
 /**
- * Convert {@link ExecutionInfo} to {@code String}.
+ * Convert {@link QueryExecutionInfo} to {@code String}.
  *
  * @author Tadaya Tsuyukubo
  */
-public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
+public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, String> {
 
     private static final String DEFAULT_DELIMITER = " ";
 
-    public static final BiConsumer<ExecutionInfo, StringBuilder> DEFAULT_ON_THREAD = (executionInfo, sb) -> {
+    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_THREAD = (executionInfo, sb) -> {
         sb.append("Thread:");
         sb.append(executionInfo.getThreadName());
         sb.append("(");
@@ -30,37 +30,37 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         sb.append(")");
     };
 
-    public static final BiConsumer<ExecutionInfo, StringBuilder> DEFAULT_ON_CONNECTION = (executionInfo, sb) -> {
+    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_CONNECTION = (executionInfo, sb) -> {
         sb.append("Connection:");
         sb.append(executionInfo.getConnectionId());
     };
 
-    public static final BiConsumer<ExecutionInfo, StringBuilder> DEFAULT_ON_SUCCESS = (executionInfo, sb) -> {
+    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_SUCCESS = (executionInfo, sb) -> {
         sb.append("Success:");
         sb.append(executionInfo.isSuccess() ? "True" : "False");
     };
 
-    public static final BiConsumer<ExecutionInfo, StringBuilder> DEFAULT_ON_TIME = (executionInfo, sb) -> {
+    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_TIME = (executionInfo, sb) -> {
         sb.append("Time:");
         sb.append(executionInfo.getExecuteDuration().toMillis());
     };
 
-    public static final BiConsumer<ExecutionInfo, StringBuilder> DEFAULT_ON_TYPE = (executionInfo, sb) -> {
+    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_TYPE = (executionInfo, sb) -> {
         sb.append("Type:");
         sb.append(executionInfo.getType() == ExecutionType.BATCH ? "Batch" : "Statement");
     };
 
-    public static final BiConsumer<ExecutionInfo, StringBuilder> DEFAULT_ON_BATCH_SIZE = (executionInfo, sb) -> {
+    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_BATCH_SIZE = (executionInfo, sb) -> {
         sb.append("BatchSize:");
         sb.append(executionInfo.getBatchSize());
     };
 
-    public static final BiConsumer<ExecutionInfo, StringBuilder> DEFAULT_ON_BINDINGS_SIZE = (executionInfo, sb) -> {
+    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_BINDINGS_SIZE = (executionInfo, sb) -> {
         sb.append("BindingsSize:");
         sb.append(executionInfo.getBindingsSize());
     };
 
-    public static final BiConsumer<ExecutionInfo, StringBuilder> DEFAULT_ON_QUERY = (executionInfo, sb) -> {
+    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_QUERY = (executionInfo, sb) -> {
         sb.append("Query:[");
 
         List<QueryInfo> queries = executionInfo.getQueries();
@@ -99,7 +99,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         sb.append(s);
     };
 
-    public static final BiConsumer<ExecutionInfo, StringBuilder> DEFAULT_ON_BINDINGS = (executionInfo, sb) -> {
+    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_BINDINGS = (executionInfo, sb) -> {
         sb.append("Bindings:[");
 
         List<QueryInfo> queries = executionInfo.getQueries();
@@ -130,18 +130,18 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
     };
 
 
-    private BiConsumer<ExecutionInfo, StringBuilder> onThread = DEFAULT_ON_THREAD;
-    private BiConsumer<ExecutionInfo, StringBuilder> onConnection = DEFAULT_ON_CONNECTION;
-    private BiConsumer<ExecutionInfo, StringBuilder> onSuccess = DEFAULT_ON_SUCCESS;
-    private BiConsumer<ExecutionInfo, StringBuilder> onTime = DEFAULT_ON_TIME;
-    private BiConsumer<ExecutionInfo, StringBuilder> onType = DEFAULT_ON_TYPE;
-    private BiConsumer<ExecutionInfo, StringBuilder> onBatchSize = DEFAULT_ON_BATCH_SIZE;
-    private BiConsumer<ExecutionInfo, StringBuilder> onBindingsSize = DEFAULT_ON_BINDINGS_SIZE;
-    private BiConsumer<ExecutionInfo, StringBuilder> onQuery = DEFAULT_ON_QUERY;
-    private BiConsumer<ExecutionInfo, StringBuilder> onBindings = DEFAULT_ON_BINDINGS;
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onThread = DEFAULT_ON_THREAD;
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onConnection = DEFAULT_ON_CONNECTION;
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onSuccess = DEFAULT_ON_SUCCESS;
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onTime = DEFAULT_ON_TIME;
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onType = DEFAULT_ON_TYPE;
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onBatchSize = DEFAULT_ON_BATCH_SIZE;
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onBindingsSize = DEFAULT_ON_BINDINGS_SIZE;
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onQuery = DEFAULT_ON_QUERY;
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onBindings = DEFAULT_ON_BINDINGS;
     private String delimiter = DEFAULT_DELIMITER;
 
-    private List<BiConsumer<ExecutionInfo, StringBuilder>> consumers = new ArrayList<>();
+    private List<BiConsumer<QueryExecutionInfo, StringBuilder>> consumers = new ArrayList<>();
 
 
     public static ExecutionInfoFormatter showAll() {
@@ -158,12 +158,12 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         return formatter;
     }
 
-    public ExecutionInfoFormatter addConsumer(BiConsumer<ExecutionInfo, StringBuilder> consumer) {
+    public ExecutionInfoFormatter addConsumer(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.consumers.add(consumer);
         return this;
     }
 
-    public String format(ExecutionInfo executionInfo) {
+    public String format(QueryExecutionInfo executionInfo) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -179,7 +179,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
     }
 
     @Override
-    public String apply(ExecutionInfo executionInfo) {
+    public String apply(QueryExecutionInfo executionInfo) {
         return format(executionInfo);
     }
 
@@ -204,7 +204,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         return this;
     }
 
-    public ExecutionInfoFormatter showThread(BiConsumer<ExecutionInfo, StringBuilder> consumer) {
+    public ExecutionInfoFormatter showThread(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onThread = consumer;
         return showThread();
     }
@@ -214,7 +214,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         return this;
     }
 
-    public ExecutionInfoFormatter showConnection(BiConsumer<ExecutionInfo, StringBuilder> consumer) {
+    public ExecutionInfoFormatter showConnection(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onConnection = consumer;
         return showConnection();
     }
@@ -224,7 +224,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         return this;
     }
 
-    public ExecutionInfoFormatter showSuccess(BiConsumer<ExecutionInfo, StringBuilder> consumer) {
+    public ExecutionInfoFormatter showSuccess(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onSuccess = consumer;
         return showSuccess();
     }
@@ -234,7 +234,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         return this;
     }
 
-    public ExecutionInfoFormatter showTime(BiConsumer<ExecutionInfo, StringBuilder> consumer) {
+    public ExecutionInfoFormatter showTime(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onTime = consumer;
         return showTime();
     }
@@ -244,7 +244,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         return this;
     }
 
-    public ExecutionInfoFormatter showType(BiConsumer<ExecutionInfo, StringBuilder> consumer) {
+    public ExecutionInfoFormatter showType(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onType = consumer;
         return showType();
     }
@@ -255,7 +255,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         return this;
     }
 
-    public ExecutionInfoFormatter showBatchSize(BiConsumer<ExecutionInfo, StringBuilder> consumer) {
+    public ExecutionInfoFormatter showBatchSize(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onBatchSize = consumer;
         return showBatchSize();
     }
@@ -265,7 +265,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         return this;
     }
 
-    public ExecutionInfoFormatter showBindingsSize(BiConsumer<ExecutionInfo, StringBuilder> consumer) {
+    public ExecutionInfoFormatter showBindingsSize(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onBindingsSize = consumer;
         return showBindingsSize();
     }
@@ -276,7 +276,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         return this;
     }
 
-    public ExecutionInfoFormatter showQuery(BiConsumer<ExecutionInfo, StringBuilder> consumer) {
+    public ExecutionInfoFormatter showQuery(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onQuery = consumer;
         return showQuery();
     }
@@ -287,7 +287,7 @@ public class ExecutionInfoFormatter implements Function<ExecutionInfo, String> {
         return this;
     }
 
-    public ExecutionInfoFormatter showBindings(BiConsumer<ExecutionInfo, StringBuilder> consumer) {
+    public ExecutionInfoFormatter showBindings(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onBindings = consumer;
         return showBindings();
     }

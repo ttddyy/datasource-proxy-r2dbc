@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @author Tadaya Tsuyukubo
  */
-public class ExecutionInfo {
+public class QueryExecutionInfo {
 
     private String dataSourceName = "";
     private String connectionId = "";

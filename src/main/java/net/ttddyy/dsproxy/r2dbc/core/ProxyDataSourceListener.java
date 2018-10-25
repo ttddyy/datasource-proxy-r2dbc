@@ -34,7 +34,7 @@ public interface ProxyDataSourceListener {
      *
      * @param execInfo query execution context
      */
-    default void beforeQuery(ExecutionInfo execInfo) {
+    default void beforeQuery(QueryExecutionInfo execInfo) {
     }
 
     /**
@@ -44,7 +44,7 @@ public interface ProxyDataSourceListener {
      *
      * @param execInfo query execution context
      */
-    default void afterQuery(ExecutionInfo execInfo) {
+    default void afterQuery(QueryExecutionInfo execInfo) {
     }
 
 }

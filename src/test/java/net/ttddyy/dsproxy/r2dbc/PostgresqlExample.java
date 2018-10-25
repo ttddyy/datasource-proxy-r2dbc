@@ -21,7 +21,7 @@ import io.r2dbc.client.R2dbc;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
-import net.ttddyy.dsproxy.r2dbc.core.ExecutionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyDataSourceListener;
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -66,7 +66,7 @@ final class PostgresqlExample implements Example<String> {
         // TODO: better API
         ProxyDataSourceListener listener = new ProxyDataSourceListener() {
             @Override
-            public void afterQuery(ExecutionInfo execInfo) {
+            public void afterQuery(QueryExecutionInfo execInfo) {
                 String queryLog = queryExecutionFormatter.format(execInfo);
                 System.out.println("QUERYLOG::" + queryLog);
 //                logger.info("QUERYLOG:: " + queryLog);

@@ -5,11 +5,22 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Copy from datasource-proxy
+ * Delegate to multiple of {@link ProxyExecutionListener ProxyExecutionListeners}.
+ *
  * @author Tadaya Tsuyukubo
  */
 public class CompositeProxyExecutionListener implements ProxyExecutionListener {
     private List<ProxyExecutionListener> listeners = new ArrayList<>();
+
+    @Override
+    public void onMethodExecution(MethodExecutionInfo executionInfo) {
+        this.listeners.forEach(listener -> listener.onMethodExecution(executionInfo));
+    }
+
+    @Override
+    public void onQueryExecution(QueryExecutionInfo executionInfo) {
+        this.listeners.forEach(listener -> listener.onQueryExecution(executionInfo));
+    }
 
     @Override
     public void beforeMethod(MethodExecutionInfo executionInfo) {

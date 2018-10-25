@@ -63,17 +63,14 @@ final class PostgresqlExample implements Example<String> {
 
         ConnectionFactory proxyConnectionFactory =
                 ProxyConnectionFactory.of(connectionFactory)
-                        .onAfterMethod(execInfo -> {
-                            execInfo.map(methodExecutionFormatter::format)
-                                    .doOnNext(System.out::println)
-                                    .subscribe();
-                        })
-                        .onAfterQuery(execInfo -> {
-                            execInfo.map(queryExecutionFormatter::format)
-                                    .doOnNext(System.out::println)
-                                    .subscribe();
-                        })
-                ;
+                        .onAfterMethod(execInfo ->
+                                execInfo.map(methodExecutionFormatter::format)
+                                        .doOnNext(System.out::println)
+                                        .subscribe())
+                        .onAfterQuery(execInfo ->
+                                execInfo.map(queryExecutionFormatter::format)
+                                        .doOnNext(System.out::println)
+                                        .subscribe());
 
         this.r2dbc = new R2dbc(proxyConnectionFactory);
     }

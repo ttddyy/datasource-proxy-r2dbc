@@ -13,6 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -508,6 +509,22 @@ public class QueryExecutionInfoFormatterTest {
 
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("Time:0ZZZSuccess:False", result);
+    }
+
+    @Test
+    void newLine() {
+        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter()
+                .showTime()
+                .newLine()
+                .showSuccess()
+                .newLine()
+                .showBatchSize();
+
+        String lineSeparator = System.lineSeparator();
+        String expected = format("Time:0 %sSuccess:False %sBatchSize:0", lineSeparator, lineSeparator);
+
+        String result = formatter.format(new QueryExecutionInfo());
+        assertEquals(expected, result);
     }
 
 }

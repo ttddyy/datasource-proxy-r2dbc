@@ -148,6 +148,9 @@ public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, Stri
         sb.append("]");
     };
 
+    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_NEWLINE = (executionInfo, sb) -> {
+        sb.append(System.lineSeparator());
+    };
 
     private BiConsumer<QueryExecutionInfo, StringBuilder> onThread = DEFAULT_ON_THREAD;
     private BiConsumer<QueryExecutionInfo, StringBuilder> onConnection = DEFAULT_ON_CONNECTION;
@@ -158,6 +161,7 @@ public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, Stri
     private BiConsumer<QueryExecutionInfo, StringBuilder> onBindingsSize = DEFAULT_ON_BINDINGS_SIZE;
     private BiConsumer<QueryExecutionInfo, StringBuilder> onQuery = DEFAULT_ON_QUERY;
     private BiConsumer<QueryExecutionInfo, StringBuilder> onBindings = DEFAULT_ON_BINDINGS;
+    private BiConsumer<QueryExecutionInfo, StringBuilder> newLine = DEFAULT_NEWLINE;
     private String delimiter = DEFAULT_DELIMITER;
 
     private List<BiConsumer<QueryExecutionInfo, StringBuilder>> consumers = new ArrayList<>();
@@ -188,7 +192,11 @@ public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, Stri
 
         consumers.forEach(consumer -> {
             consumer.accept(executionInfo, sb);
-            sb.append(this.delimiter);
+
+            // if it is for new line, skip adding delimiter
+            if (consumer != this.newLine) {
+                sb.append(this.delimiter);
+            }
         });
 
         chompIfEndWith(sb, this.delimiter);
@@ -309,6 +317,14 @@ public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, Stri
     public ExecutionInfoFormatter showBindings(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onBindings = consumer;
         return showBindings();
+    }
+
+    /**
+     * Change the line
+     */
+    public ExecutionInfoFormatter newLine() {
+        this.consumers.add(this.newLine);
+        return this;
     }
 
 }

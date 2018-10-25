@@ -20,7 +20,7 @@ import static java.util.stream.Collectors.joining;
  *
  * @author Tadaya Tsuyukubo
  */
-public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, String> {
+public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo, String> {
 
     private static final String DEFAULT_DELIMITER = " ";
 
@@ -167,8 +167,8 @@ public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, Stri
     private List<BiConsumer<QueryExecutionInfo, StringBuilder>> consumers = new ArrayList<>();
 
 
-    public static ExecutionInfoFormatter showAll() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+    public static QueryExecutionInfoFormatter showAll() {
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.addConsumer(formatter.onThread);
         formatter.addConsumer(formatter.onConnection);
         formatter.addConsumer(formatter.onSuccess);
@@ -181,7 +181,7 @@ public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, Stri
         return formatter;
     }
 
-    public ExecutionInfoFormatter addConsumer(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+    public QueryExecutionInfoFormatter addConsumer(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.consumers.add(consumer);
         return this;
     }
@@ -220,101 +220,101 @@ public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, Stri
         }
     }
 
-    public ExecutionInfoFormatter delimiter(String delimiter) {
+    public QueryExecutionInfoFormatter delimiter(String delimiter) {
         this.delimiter = delimiter;
         return this;
     }
 
 
-    public ExecutionInfoFormatter showThread() {
+    public QueryExecutionInfoFormatter showThread() {
         this.consumers.add(this.onThread);
         return this;
     }
 
-    public ExecutionInfoFormatter showThread(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+    public QueryExecutionInfoFormatter showThread(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onThread = consumer;
         return showThread();
     }
 
-    public ExecutionInfoFormatter showConnection() {
+    public QueryExecutionInfoFormatter showConnection() {
         this.consumers.add(this.onConnection);
         return this;
     }
 
-    public ExecutionInfoFormatter showConnection(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+    public QueryExecutionInfoFormatter showConnection(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onConnection = consumer;
         return showConnection();
     }
 
-    public ExecutionInfoFormatter showSuccess() {
+    public QueryExecutionInfoFormatter showSuccess() {
         this.consumers.add(this.onSuccess);
         return this;
     }
 
-    public ExecutionInfoFormatter showSuccess(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+    public QueryExecutionInfoFormatter showSuccess(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onSuccess = consumer;
         return showSuccess();
     }
 
-    public ExecutionInfoFormatter showTime() {
+    public QueryExecutionInfoFormatter showTime() {
         this.consumers.add(this.onTime);
         return this;
     }
 
-    public ExecutionInfoFormatter showTime(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+    public QueryExecutionInfoFormatter showTime(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onTime = consumer;
         return showTime();
     }
 
-    public ExecutionInfoFormatter showType() {
+    public QueryExecutionInfoFormatter showType() {
         this.consumers.add(this.onType);
         return this;
     }
 
-    public ExecutionInfoFormatter showType(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+    public QueryExecutionInfoFormatter showType(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onType = consumer;
         return showType();
     }
 
 
-    public ExecutionInfoFormatter showBatchSize() {
+    public QueryExecutionInfoFormatter showBatchSize() {
         this.consumers.add(this.onBatchSize);
         return this;
     }
 
-    public ExecutionInfoFormatter showBatchSize(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+    public QueryExecutionInfoFormatter showBatchSize(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onBatchSize = consumer;
         return showBatchSize();
     }
 
-    public ExecutionInfoFormatter showBindingsSize() {
+    public QueryExecutionInfoFormatter showBindingsSize() {
         this.consumers.add(this.onBindingsSize);
         return this;
     }
 
-    public ExecutionInfoFormatter showBindingsSize(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+    public QueryExecutionInfoFormatter showBindingsSize(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onBindingsSize = consumer;
         return showBindingsSize();
     }
 
 
-    public ExecutionInfoFormatter showQuery() {
+    public QueryExecutionInfoFormatter showQuery() {
         this.consumers.add(this.onQuery);
         return this;
     }
 
-    public ExecutionInfoFormatter showQuery(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+    public QueryExecutionInfoFormatter showQuery(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onQuery = consumer;
         return showQuery();
     }
 
 
-    public ExecutionInfoFormatter showBindings() {
+    public QueryExecutionInfoFormatter showBindings() {
         this.consumers.add(this.onBindings);
         return this;
     }
 
-    public ExecutionInfoFormatter showBindings(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+    public QueryExecutionInfoFormatter showBindings(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onBindings = consumer;
         return showBindings();
     }
@@ -322,7 +322,7 @@ public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, Stri
     /**
      * Change the line
      */
-    public ExecutionInfoFormatter newLine() {
+    public QueryExecutionInfoFormatter newLine() {
         this.consumers.add(this.newLine);
         return this;
     }

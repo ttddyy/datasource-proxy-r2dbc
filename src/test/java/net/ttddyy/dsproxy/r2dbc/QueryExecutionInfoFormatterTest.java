@@ -37,7 +37,7 @@ public class QueryExecutionInfoFormatterTest {
         execInfo.setBindingsSize(10);
         execInfo.getQueries().addAll(Arrays.asList(new QueryInfo("SELECT A"), new QueryInfo("SELECT B")));
 
-        ExecutionInfoFormatter formatter = ExecutionInfoFormatter.showAll();
+        QueryExecutionInfoFormatter formatter = QueryExecutionInfoFormatter.showAll();
 
         String result = formatter.format(execInfo);
         assertEquals("Thread:my-thread(99) Connection:conn-id Success:True Time:35 " +
@@ -89,7 +89,7 @@ public class QueryExecutionInfoFormatterTest {
         execInfo.setBindingsSize(10);
 
 
-        ExecutionInfoFormatter formatter = ExecutionInfoFormatter.showAll();
+        QueryExecutionInfoFormatter formatter = QueryExecutionInfoFormatter.showAll();
         String result;
 
         // with index bindings
@@ -118,8 +118,8 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void onThread() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
-        formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_THREAD);
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_THREAD);
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setThreadName("my-thread");
@@ -131,8 +131,8 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void onConnection() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
-        formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_CONNECTION);
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_CONNECTION);
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setConnectionId("99");
@@ -143,8 +143,8 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void onSuccess() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
-        formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_SUCCESS);
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_SUCCESS);
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setSuccess(true);
@@ -160,8 +160,8 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void onTime() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
-        formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_TIME);
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_TIME);
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setExecuteDuration(Duration.of(55, ChronoUnit.MILLIS));
@@ -172,8 +172,8 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void onType() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
-        formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_TYPE);
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_TYPE);
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         String str;
@@ -189,8 +189,8 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void onBatchSize() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
-        formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_BATCH_SIZE);
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_BATCH_SIZE);
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setBatchSize(99);
@@ -201,8 +201,8 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void onBindingsSize() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
-        formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_BINDINGS_SIZE);
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_BINDINGS_SIZE);
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setBindingsSize(99);
@@ -213,8 +213,8 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void onQuery() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
-        formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_QUERY);
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_QUERY);
 
         QueryInfo query1 = new QueryInfo("QUERY-1");
         QueryInfo query2 = new QueryInfo("QUERY-2");
@@ -243,8 +243,8 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void onBindingsWithIndexBinding() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
-        formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_BINDINGS);
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_BINDINGS);
 
         Bindings bindings1 = new Bindings();
         bindings1.addIndexBinding(0, new SimpleBindingValue("100"));
@@ -292,8 +292,8 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void onBindingsWithIdentifierBinding() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
-        formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_BINDINGS);
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_BINDINGS);
 
         Bindings bindings1 = new Bindings();
         bindings1.addIdentifierBinding("$0", new SimpleBindingValue("100"));
@@ -341,7 +341,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showAll() {
-        ExecutionInfoFormatter formatter = ExecutionInfoFormatter.showAll();
+        QueryExecutionInfoFormatter formatter = QueryExecutionInfoFormatter.showAll();
         String result = formatter.format(new QueryExecutionInfo());
         assertThat(result)
                 .containsSubsequence("Thread", "Connection", "Success", "Time", "Type", "BatchSize",
@@ -350,14 +350,14 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void defaultInstance() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("", result, "Does not generate anything.");
     }
 
     @Test
     void showThread() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showThread();
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("Thread:(0)", result);
@@ -365,7 +365,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showThreadWithConsumer() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showThread(((executionInfo, sb) -> sb.append("my-thread")));
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-thread", result);
@@ -374,7 +374,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showConnection() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showConnection();
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("Connection:", result);
@@ -382,7 +382,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showConnectionWithConsumer() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showConnection(((executionInfo, sb) -> sb.append("my-connection")));
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-connection", result);
@@ -390,7 +390,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showSuccess() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showSuccess();
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("Success:False", result);
@@ -398,7 +398,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showSuccessWithConsumer() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showSuccess(((executionInfo, sb) -> sb.append("my-success")));
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-success", result);
@@ -406,7 +406,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showTime() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showTime();
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("Time:0", result);
@@ -414,7 +414,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showTimeWithConsumer() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showTime(((executionInfo, sb) -> sb.append("my-time")));
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-time", result);
@@ -422,7 +422,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showType() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showType();
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("Type:Statement", result);
@@ -430,7 +430,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showTypeWithConsumer() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showType(((executionInfo, sb) -> sb.append("my-type")));
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-type", result);
@@ -438,7 +438,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showBatchSize() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showBatchSize();
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("BatchSize:0", result);
@@ -446,7 +446,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showBatchSizeWithConsumer() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showBatchSize(((executionInfo, sb) -> sb.append("my-batchsize")));
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-batchsize", result);
@@ -454,7 +454,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showBindingsSize() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showBindingsSize();
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("BindingsSize:0", result);
@@ -462,7 +462,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showBindingsSizeWithConsumer() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showBindingsSize(((executionInfo, sb) -> sb.append("my-bindingsize")));
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-bindingsize", result);
@@ -470,7 +470,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showQuery() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showQuery();
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("Query:[]", result);
@@ -478,7 +478,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showQueryWithConsumer() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showQuery(((executionInfo, sb) -> sb.append("my-query")));
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-query", result);
@@ -486,7 +486,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showBindings() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showBindings();
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("Bindings:[]", result);
@@ -494,7 +494,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void showBindingsWithConsumer() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter();
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showBindings(((executionInfo, sb) -> sb.append("my-binding")));
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-binding", result);
@@ -502,7 +502,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void delimiter() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter()
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter()
                 .showTime()
                 .showSuccess()
                 .delimiter("ZZZ");
@@ -513,7 +513,7 @@ public class QueryExecutionInfoFormatterTest {
 
     @Test
     void newLine() {
-        ExecutionInfoFormatter formatter = new ExecutionInfoFormatter()
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter()
                 .showTime()
                 .newLine()
                 .showSuccess()

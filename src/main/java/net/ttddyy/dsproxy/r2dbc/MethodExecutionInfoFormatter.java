@@ -68,7 +68,7 @@ public class MethodExecutionInfoFormatter implements Function<MethodExecutionInf
         return this;
     }
 
-    // TODO: share this with ExecutionInfoFormatter
+    // TODO: share this with QueryExecutionInfoFormatter
     protected void chompIfEndWith(StringBuilder sb, String s) {
         if (sb.length() < s.length()) {
             return;

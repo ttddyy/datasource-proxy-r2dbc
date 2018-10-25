@@ -58,7 +58,7 @@ final class PostgresqlExample implements Example<String> {
 
         Logger logger = Loggers.getLogger(getClass());
 
-        ExecutionInfoFormatter queryExecutionFormatter = ExecutionInfoFormatter.showAll();
+        QueryExecutionInfoFormatter queryExecutionFormatter = QueryExecutionInfoFormatter.showAll();
         MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
         ConnectionFactory proxyConnectionFactory =

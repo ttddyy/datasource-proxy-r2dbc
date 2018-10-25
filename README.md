@@ -11,7 +11,7 @@ Provide listener for R2DBC query executions and method invocations.
 - before/after query execution
 - (operations on `Connection`, `Batch` and `Statement`) 
 
-### Query log example
+### Query logging
 
 When query is executed by `Batch#execute()` or `Statement#execute()`, log query execution
 information.
@@ -42,12 +42,13 @@ Query:["INSERT INTO test VALUES ($1)"], Bindings:[(100),(200)]
 When any methods on `Connection`, `Batch`, or `Statement` are invoked,
 _"beforeMethod()/afterMethod()"_ on listener is called.
 
+
+## Sample
+
 This example shows how to print out invoked methods with some additional info.
 Essentially, it displays interaction with R2DBC SPI for query execution.
 
-
-*Sample*
-
+Client code:
 ```java
 // Simple Transaction Example
 getR2dbc()
@@ -58,38 +59,43 @@ getR2dbc()
 
 Setup:
 ```java
-// converter: from MethodExecutionInfo to String
+// converter: from execution info to String
+QueryExecutionInfoFormatter queryExecutionFormatter = QueryExecutionInfoFormatter.showAll();
 MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
-ProxyDataSourceListener listener = new ProxyDataSourceListener() {
-
-    // This method is called after any invocation on Connection, Batch, and Statement
-    @Override
-    public void afterMethod(MethodExecutionInfo executionInfo) {
-        String methodLog = methodExecutionFormatter.format(executionInfo);
-        System.out.println(methodLog);
-    }
-};
-
-// register the listener and create a proxy ConnectionFactory
-ProxyConfig proxyConfig = new ProxyConfig();
-proxyConfig.addListener(listener);
-
 ConnectionFactory proxyConnectionFactory =
-        new ProxyConnectionFactory(connectionFactory, proxyConfig);
+  ProxyConnectionFactory.of(connectionFactory)  // wrap original ConnectionFactory
+    // on every method invocation
+    .onAfterMethod(execInfo ->  
+      execInfo.map(methodExecutionFormatter::format)
+              .doOnNext(System.out::println)        // print out method execution (method tracing)
+              .subscribe())
+    // on every query execution
+    .onAfterQuery(execInfo ->
+      execInfo.map(queryExecutionFormatter::format)
+              .doOnNext(System.out::println)       // print out executed query
+              .subscribe());
 
+// pass the proxied ConnectionFactory to client
 this.r2dbc = new R2dbc(proxyConnectionFactory);
 ```
 
-Output:
+Method tracing output:
 ```sql
- 1: Thread:0 Connection:1 Time:4 PostgresqlConnection#createStatement()
- 2: Thread:0 Connection:1 Time:6 ExtendedQueryPostgresqlStatement#bind()
- 3: Thread:0 Connection:1 Time:0 ExtendedQueryPostgresqlStatement#add()
- 4: Thread:30 Connection:1 Time:14 PostgresqlConnection#beginTransaction()
- 5: Thread:30 Connection:1 Time:38 ExtendedQueryPostgresqlStatement#execute()
- 6: Thread:30 Connection:1 Time:7 PostgresqlConnection#commitTransaction()
- 7: Thread:30 Connection:1 Time:10 PostgresqlConnection#close()
+  1: Thread:0 Connection:1 Time:3  PostgresqlConnection#createStatement()
+  2: Thread:0 Connection:1 Time:4  ExtendedQueryPostgresqlStatement#bind()
+  3: Thread:0 Connection:1 Time:0  ExtendedQueryPostgresqlStatement#add()
+  4: Thread:30 Connection:1 Time:13  PostgresqlConnection#beginTransaction()
+  5: Thread:30 Connection:1 Time:34  ExtendedQueryPostgresqlStatement#execute()
+  6: Thread:30 Connection:1 Time:6  PostgresqlConnection#commitTransaction()
+  7: Thread:30 Connection:1 Time:6  PostgresqlConnection#close()
+```
+
+Query output: (wrapped for display)
+```sql
+Thread:reactor-tcp-nio-1(30) Connection:1 Success:True Time:32 
+Type:Statement BatchSize:0 BindingsSize:1 
+Query:["INSERT INTO test VALUES ($1)"] Bindings:[(200)]
 ```
 
 
@@ -108,35 +114,26 @@ Output:
 Wrap original `ConnectionFactory` by `ProxyConnectionFactory` and pass it to R2DBC client.
 
 ```java
-  // original connection factory
-  ConnectionFactory connectionFactory = new PostgresqlConnectionFactory(this.configuration);
+// original connection factory
+ConnectionFactory connectionFactory = new PostgresqlConnectionFactory(this.configuration);
 
-  Logger logger = Loggers.getLogger(getClass());
 
-  ExecutionInfoFormatter queryExecutionFormatter = ExecutionInfoFormatter.showAll();
+// converters
+QueryExecutionInfoFormatter queryExecutionFormatter = QueryExecutionInfoFormatter.showAll();
+MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
-  // create listener   TODO: better API
-  ProxyDataSourceListener listener = new ProxyDataSourceListener() {
-      @Override
-      public void afterQuery(ExecutionInfo execInfo) {
-          // construct query log string
-          String queryLog = queryExecutionFormatter.format(execInfo);
+// create proxied connection factory
+ConnectionFactory proxyConnectionFactory =
+  ProxyConnectionFactory.of(connectionFactory)  // wrap original ConnectionFactory
+    .onAfterMethod(execInfo -> {
+      ...   // callback after method execution
+    })  
+    .onAfterQuery(execInfo -> {
+      ...  //  callback after query execution
+    });
 
-          System.out.println(queryLog);
-          // logger.info(queryLog);  // or write it to logger
-      }
-  };
-
-  // register listner
-  ProxyConfig proxyConfig = new ProxyConfig();
-  proxyConfig.addListener(listener);
-
-  // wrapped connection factory
-  ConnectionFactory proxyConnectionFactory =
-            new ProxyConnectionFactory(connectionFactory, proxyConfig);
-
-  // initialize client with the wrappd connection factory
-  this.r2dbc = new R2dbc(proxyConnectionFactory);
+// initialize client with the wrappd connection factory
+this.r2dbc = new R2dbc(proxyConnectionFactory);
 ```
 
 ----

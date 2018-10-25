@@ -3,6 +3,7 @@ package net.ttddyy.dsproxy.r2dbc;
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Result;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
+import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ public class ReactiveBatchCallbackTest {
 
     @Test
     void batchOperation() throws Throwable {
-        TestProxyDataSourceListener testListener = new TestProxyDataSourceListener();
+        LastExecutionAwareListener testListener = new LastExecutionAwareListener();
 
         String connectionId = "100";
         ProxyConfig proxyConfig = new ProxyConfig();

@@ -28,6 +28,7 @@ public class QueryExecutionInfo {
     private Duration executeDuration = Duration.ZERO;
     private String threadName = "";
     private long threadId;
+    private ProxyEventType proxyEventType;
 
     private List<QueryInfo> queries = new ArrayList<>();
 
@@ -164,5 +165,13 @@ public class QueryExecutionInfo {
 
     public void setThreadId(long threadId) {
         this.threadId = threadId;
+    }
+
+    public ProxyEventType getProxyEventType() {
+        return proxyEventType;
+    }
+
+    public void setProxyEventType(ProxyEventType proxyEventType) {
+        this.proxyEventType = proxyEventType;
     }
 }

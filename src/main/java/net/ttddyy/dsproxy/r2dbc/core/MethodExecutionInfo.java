@@ -20,6 +20,7 @@ public class MethodExecutionInfo {
     private Duration executeDuration = Duration.ZERO;
     private String threadName;
     private long threadId;
+    private ProxyEventType proxyEventType;
 
 
     public Object getTarget() {
@@ -92,5 +93,13 @@ public class MethodExecutionInfo {
 
     public void setThreadId(long threadId) {
         this.threadId = threadId;
+    }
+
+    public ProxyEventType getProxyEventType() {
+        return proxyEventType;
+    }
+
+    public void setProxyEventType(ProxyEventType proxyEventType) {
+        this.proxyEventType = proxyEventType;
     }
 }

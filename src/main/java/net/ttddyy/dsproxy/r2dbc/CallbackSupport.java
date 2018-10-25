@@ -2,6 +2,7 @@ package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Result;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.ProxyEventType;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import org.reactivestreams.Publisher;
@@ -55,6 +56,8 @@ public abstract class CallbackSupport {
                         executionInfo.setThreadName(threadName);
                         executionInfo.setThreadId(threadId);
 
+                        executionInfo.setProxyEventType(ProxyEventType.BEFORE_METHOD);
+
                         listener.beforeMethod(executionInfo);
                     })
                     .concatWith(result)
@@ -74,12 +77,15 @@ public abstract class CallbackSupport {
                         executionInfo.setThreadName(threadName);
                         executionInfo.setThreadId(threadId);
 
+                        executionInfo.setProxyEventType(ProxyEventType.AFTER_METHOD);
+
                         listener.afterMethod(executionInfo);
                     });
 
 
         } else {
 
+            executionInfo.setProxyEventType(ProxyEventType.BEFORE_METHOD);
             listener.beforeMethod(executionInfo);
 
             Instant startTime = this.clock.instant();
@@ -102,6 +108,7 @@ public abstract class CallbackSupport {
                 Duration executionDuration = Duration.between(startTime, currentTime);
                 executionInfo.setExecuteDuration(executionDuration);
 
+                executionInfo.setProxyEventType(ProxyEventType.AFTER_METHOD);
                 listener.afterMethod(executionInfo);
             }
             return result;
@@ -131,6 +138,8 @@ public abstract class CallbackSupport {
                     executionInfo.setThreadName(threadName);
                     executionInfo.setThreadId(threadId);
 
+                    executionInfo.setProxyEventType(ProxyEventType.BEFORE_QUERY);
+
                     listener.beforeQuery(executionInfo);
                 })
                 .concatWith(flux)
@@ -156,6 +165,8 @@ public abstract class CallbackSupport {
                     long threadId = Thread.currentThread().getId();
                     executionInfo.setThreadName(threadName);
                     executionInfo.setThreadId(threadId);
+
+                    executionInfo.setProxyEventType(ProxyEventType.AFTER_QUERY);
 
                     listener.afterQuery(executionInfo);
                 });

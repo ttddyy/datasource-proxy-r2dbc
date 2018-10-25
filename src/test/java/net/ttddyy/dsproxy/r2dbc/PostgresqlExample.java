@@ -37,9 +37,6 @@ import reactor.util.Loggers;
 import reactor.util.annotation.Nullable;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static java.lang.String.format;
 
 /**
  * Copy from r2dbc-client
@@ -63,32 +60,22 @@ final class PostgresqlExample implements Example<String> {
         ConnectionFactory connectionFactory = new PostgresqlConnectionFactory(this.configuration);
 
         Logger logger = Loggers.getLogger(getClass());
-        ExecutionInfoFormatter formatter = ExecutionInfoFormatter.showAll();
+        ExecutionInfoFormatter queryExecutionFormatter = ExecutionInfoFormatter.showAll();
+        MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
         // TODO: better API
         ProxyDataSourceListener listener = new ProxyDataSourceListener() {
             @Override
             public void afterQuery(ExecutionInfo execInfo) {
-                String queryLog = formatter.format(execInfo);
+                String queryLog = queryExecutionFormatter.format(execInfo);
                 System.out.println("QUERYLOG::" + queryLog);
 //                logger.info("QUERYLOG:: " + queryLog);
             }
 
-            private AtomicLong sequenceNumber = new AtomicLong(1);
-
             @Override
             public void afterMethod(MethodExecutionInfo executionInfo) {
-
-                long seq = sequenceNumber.getAndIncrement();
-                String connectionId = executionInfo.getConnectionId();
-                long  executionTime = executionInfo.getExecuteDuration().toMillis();
-                String targetClass = executionInfo.getTarget().getClass().getSimpleName();
-                String methodName = executionInfo.getMethod().getName();
-                long threadId = executionInfo.getThreadId();
-
-
-                System.out.println(format("%2d: Thread:%d Connection:%s Time:%d %s#%s()",
-                        seq, threadId, connectionId, executionTime, targetClass, methodName));
+                String methodLog = methodExecutionFormatter.format(executionInfo);
+                System.out.println(methodLog);
             }
         };
 

@@ -8,6 +8,6 @@ public interface Binding {
 
     Object getKey();
 
-    Object getValue();
+    BindingValue getBindingValue();
 
 }

@@ -1,6 +1,8 @@
 package net.ttddyy.dsproxy.r2dbc;
 
 import net.ttddyy.dsproxy.r2dbc.core.Binding;
+import net.ttddyy.dsproxy.r2dbc.core.BindingValue;
+import net.ttddyy.dsproxy.r2dbc.core.BindingValue.NullBindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
@@ -74,13 +76,28 @@ public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, Stri
         sb.append("]");
     };
 
+    public static final BiConsumer<BindingValue, StringBuilder> DEFAULT_ON_BINDING_VALUE = (bindingValue, sb) -> {
+        if (bindingValue instanceof NullBindingValue) {
+            Class<?> type = ((NullBindingValue) bindingValue).getType();
+            sb.append("null(");
+            sb.append(type.getSimpleName());
+            sb.append(")");
+        } else {
+            sb.append(bindingValue.getValue());
+        }
+    };
+
     /**
      * generate comma separated values. "val1,val2,val3"
      */
     public static final BiConsumer<SortedSet<Binding>, StringBuilder> DEFAULT_ON_INDEX_BINDINGS = (indexBindings, sb) -> {
         String s = indexBindings.stream()
-                .map(Binding::getValue)
-                .map(String::valueOf)
+                .map(Binding::getBindingValue)
+                .map(bindingValue -> {
+                    StringBuilder sbuilder = new StringBuilder();
+                    DEFAULT_ON_BINDING_VALUE.accept(bindingValue, sbuilder);
+                    return sbuilder.toString();
+                })
                 .collect(joining(","));
 
         sb.append(s);
@@ -91,9 +108,11 @@ public class ExecutionInfoFormatter implements Function<QueryExecutionInfo, Stri
     public static final BiConsumer<SortedSet<Binding>, StringBuilder> DEFAULT_ON_IDENTIFIER_BINDINGS = (identifierBindings, sb) -> {
         String s = identifierBindings.stream()
                 .map(binding -> {
-                    String key = String.valueOf(binding.getKey());
-                    String value = String.valueOf(binding.getValue());
-                    return key + "=" + value;
+                    StringBuilder sbuilder = new StringBuilder();
+                    sbuilder.append(binding.getKey());
+                    sbuilder.append("=");
+                    DEFAULT_ON_BINDING_VALUE.accept(binding.getBindingValue(), sbuilder);
+                    return sbuilder.toString();
                 })
                 .collect(joining(","));
         sb.append(s);

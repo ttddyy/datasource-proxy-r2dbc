@@ -2,6 +2,9 @@ package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Result;
 import io.r2dbc.spi.Statement;
+import net.ttddyy.dsproxy.r2dbc.core.BindingValue;
+import net.ttddyy.dsproxy.r2dbc.core.BindingValue.NullBindingValue;
+import net.ttddyy.dsproxy.r2dbc.core.BindingValue.SimpleBindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.Bindings;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
@@ -46,20 +49,25 @@ public class ReactiveStatementCallback extends CallbackSupport {
         // add, bind, bindNull, execute
         if ("add".equals(methodName)) {
             this.currentBindingsIndex++;
-        } else if ("bind".equals(methodName)) {
+        } else if ("bind".equals(methodName) || "bindNull".equals(methodName)) {
 
             if (this.bindings.size() <= this.currentBindingsIndex) {
                 this.bindings.add(new Bindings());
             }
             Bindings bindings = this.bindings.get(this.currentBindingsIndex);
 
-            if (args[0] instanceof Integer) {
-                bindings.addIndexBinding((int) args[0], args[1]);
+            BindingValue bindingValue;
+            if ("bind".equals(methodName)) {
+                bindingValue = new SimpleBindingValue(args[1]);
             } else {
-                bindings.addIdentifierBinding(args[0], args[1]);
+                bindingValue = new NullBindingValue((Class<?>) args[1]);
             }
-        } else if ("bindNull".equals(methodName)) {
-            // TODO: impl
+
+            if (args[0] instanceof Integer) {
+                bindings.addIndexBinding((int) args[0], bindingValue);
+            } else {
+                bindings.addIdentifierBinding(args[0], bindingValue);
+            }
         } else if ("execute".equals(methodName)) {
 
             // build QueryExecutionInfo  TODO: improve

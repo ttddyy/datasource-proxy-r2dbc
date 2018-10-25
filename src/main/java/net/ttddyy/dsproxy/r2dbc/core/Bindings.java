@@ -17,11 +17,11 @@ public class Bindings {
     private SortedSet<Binding> indexBindings = new TreeSet<>();
     private SortedSet<Binding> identifierBindings = new TreeSet<>();
 
-    public void addIndexBinding(int index, Object value) {
+    public void addIndexBinding(int index, BindingValue value) {
         this.indexBindings.add(new IndexBinding(index, value));
     }
 
-    public void addIdentifierBinding(Object identifier, Object value) {
+    public void addIdentifierBinding(Object identifier, BindingValue value) {
         this.identifierBindings.add(new IdentifierBinding(identifier, value));
     }
 
@@ -36,9 +36,9 @@ public class Bindings {
     public static class IndexBinding implements
             Binding, Comparable<IndexBinding> {
         private int index;
-        private Object value;
+        private BindingValue value;
 
-        public IndexBinding(int index, Object value) {
+        public IndexBinding(int index, BindingValue value) {
             this.index = index;
             this.value = value;
         }
@@ -54,7 +54,7 @@ public class Bindings {
         }
 
         @Override
-        public Object getValue() {
+        public BindingValue getBindingValue() {
             return this.value;
         }
     }
@@ -62,9 +62,9 @@ public class Bindings {
     public static class IdentifierBinding implements
             Binding, Comparable<IdentifierBinding> {
         private Object identifier;
-        private Object value;
+        private BindingValue value;
 
-        public IdentifierBinding(Object identifier, Object value) {
+        public IdentifierBinding(Object identifier, BindingValue value) {
             this.identifier = identifier;
             this.value = value;
         }
@@ -82,7 +82,7 @@ public class Bindings {
         }
 
         @Override
-        public Object getValue() {
+        public BindingValue getBindingValue() {
             return this.value;
         }
 

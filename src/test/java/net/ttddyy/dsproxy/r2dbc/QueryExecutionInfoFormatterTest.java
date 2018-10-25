@@ -4,6 +4,8 @@ import net.ttddyy.dsproxy.r2dbc.core.Bindings;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
+import net.ttddyy.dsproxy.r2dbc.core.BindingValue.NullBindingValue;
+import net.ttddyy.dsproxy.r2dbc.core.BindingValue.SimpleBindingValue;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -47,25 +49,25 @@ public class QueryExecutionInfoFormatterTest {
     void statementExecution() {
 
         Bindings indexBindings1 = new Bindings();
-        indexBindings1.addIndexBinding(0, "100");
-        indexBindings1.addIndexBinding(1, "101");
-        indexBindings1.addIndexBinding(2, "102");
+        indexBindings1.addIndexBinding(0, new SimpleBindingValue("100"));
+        indexBindings1.addIndexBinding(1, new SimpleBindingValue("101"));
+        indexBindings1.addIndexBinding(2, new SimpleBindingValue("102"));
 
         Bindings indexBindings2 = new Bindings();
-        indexBindings2.addIndexBinding(2, "202");
-        indexBindings2.addIndexBinding(1, "201");
-        indexBindings2.addIndexBinding(0, "200");
+        indexBindings2.addIndexBinding(2, new SimpleBindingValue("202"));
+        indexBindings2.addIndexBinding(1, new NullBindingValue(String.class));
+        indexBindings2.addIndexBinding(0, new SimpleBindingValue("200"));
 
 
         Bindings idBindings1 = new Bindings();
-        idBindings1.addIdentifierBinding("$0", "100");
-        idBindings1.addIdentifierBinding("$1", "101");
-        idBindings1.addIdentifierBinding("$2", "102");
+        idBindings1.addIdentifierBinding("$0", new SimpleBindingValue("100"));
+        idBindings1.addIdentifierBinding("$1", new SimpleBindingValue("101"));
+        idBindings1.addIdentifierBinding("$2", new SimpleBindingValue("102"));
 
         Bindings idBindings2 = new Bindings();
-        idBindings2.addIdentifierBinding("$2", "202");
-        idBindings2.addIdentifierBinding("$1", "201");
-        idBindings2.addIdentifierBinding("$0", "200");
+        idBindings2.addIdentifierBinding("$2", new SimpleBindingValue("202"));
+        idBindings2.addIdentifierBinding("$1", new NullBindingValue(Integer.class));
+        idBindings2.addIdentifierBinding("$0", new SimpleBindingValue("200"));
 
         QueryInfo queryWithIndexBindings = new QueryInfo("SELECT WITH-INDEX");
         QueryInfo queryWithIdBindings = new QueryInfo("SELECT WITH-IDENTIFIER");
@@ -94,14 +96,14 @@ public class QueryExecutionInfoFormatterTest {
         result = formatter.format(execInfo);
         assertEquals("Thread:my-thread(99) Connection:conn-id Success:True Time:35" +
                 " Type:Statement BatchSize:20 BindingsSize:10 Query:[\"SELECT WITH-INDEX\"]" +
-                " Bindings:[(100,101,102),(200,201,202)]", result);
+                " Bindings:[(100,101,102),(200,null(String),202)]", result);
 
         // with identifier bindings
         execInfo.setQueries(Collections.singletonList(queryWithIdBindings));
         result = formatter.format(execInfo);
         assertEquals("Thread:my-thread(99) Connection:conn-id Success:True Time:35" +
                 " Type:Statement BatchSize:20 BindingsSize:10 Query:[\"SELECT WITH-IDENTIFIER\"]" +
-                " Bindings:[($0=100,$1=101,$2=102),($0=200,$1=201,$2=202)]", result);
+                " Bindings:[($0=100,$1=101,$2=102),($0=200,$1=null(Integer),$2=202)]", result);
 
         // with no bindings
         execInfo.setQueries(Collections.singletonList(queryWithNoBindings));
@@ -244,19 +246,19 @@ public class QueryExecutionInfoFormatterTest {
         formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_BINDINGS);
 
         Bindings bindings1 = new Bindings();
-        bindings1.addIndexBinding(0, "100");
-        bindings1.addIndexBinding(1, "101");
-        bindings1.addIndexBinding(2, "102");
+        bindings1.addIndexBinding(0, new SimpleBindingValue("100"));
+        bindings1.addIndexBinding(1, new SimpleBindingValue("101"));
+        bindings1.addIndexBinding(2, new SimpleBindingValue("102"));
 
         Bindings bindings2 = new Bindings();
-        bindings2.addIndexBinding(2, "202");
-        bindings2.addIndexBinding(1, "201");
-        bindings2.addIndexBinding(0, "200");
+        bindings2.addIndexBinding(2, new SimpleBindingValue("202"));
+        bindings2.addIndexBinding(1, new NullBindingValue(String.class));
+        bindings2.addIndexBinding(0, new SimpleBindingValue("200"));
 
         Bindings bindings3 = new Bindings();
-        bindings3.addIndexBinding(1, "300");
-        bindings3.addIndexBinding(2, "302");
-        bindings3.addIndexBinding(0, "301");
+        bindings3.addIndexBinding(1, new SimpleBindingValue("300"));
+        bindings3.addIndexBinding(2, new SimpleBindingValue("302"));
+        bindings3.addIndexBinding(0, new NullBindingValue(Integer.class));
 
         QueryInfo query1 = new QueryInfo();  // will have 3 bindings
         QueryInfo query2 = new QueryInfo();  // will have 1 bindings
@@ -273,12 +275,12 @@ public class QueryExecutionInfoFormatterTest {
         // with multiple bindings
         execInfo.setQueries(Collections.singletonList(query1));
         result = formatter.format(execInfo);
-        assertEquals("Bindings:[(100,101,102),(200,201,202),(301,300,302)]", result);
+        assertEquals("Bindings:[(100,101,102),(200,null(String),202),(null(Integer),300,302)]", result);
 
         // with single bindings
         execInfo.setQueries(Collections.singletonList(query2));
         result = formatter.format(execInfo);
-        assertEquals("Bindings:[(200,201,202)]", result);
+        assertEquals("Bindings:[(200,null(String),202)]", result);
 
         // with no bindings
         execInfo.setQueries(Collections.singletonList(query3));
@@ -293,19 +295,19 @@ public class QueryExecutionInfoFormatterTest {
         formatter.addConsumer(ExecutionInfoFormatter.DEFAULT_ON_BINDINGS);
 
         Bindings bindings1 = new Bindings();
-        bindings1.addIdentifierBinding("$0", "100");
-        bindings1.addIdentifierBinding("$1", "101");
-        bindings1.addIdentifierBinding("$2", "102");
+        bindings1.addIdentifierBinding("$0", new SimpleBindingValue("100"));
+        bindings1.addIdentifierBinding("$1", new SimpleBindingValue("101"));
+        bindings1.addIdentifierBinding("$2", new SimpleBindingValue("102"));
 
         Bindings bindings2 = new Bindings();
-        bindings2.addIdentifierBinding("$2", "202");
-        bindings2.addIdentifierBinding("$1", "201");
-        bindings2.addIdentifierBinding("$0", "200");
+        bindings2.addIdentifierBinding("$2", new SimpleBindingValue("202"));
+        bindings2.addIdentifierBinding("$1", new NullBindingValue(Long.class));
+        bindings2.addIdentifierBinding("$0", new SimpleBindingValue("200"));
 
         Bindings bindings3 = new Bindings();
-        bindings3.addIdentifierBinding("$1", "300");
-        bindings3.addIdentifierBinding("$2", "302");
-        bindings3.addIdentifierBinding("$0", "301");
+        bindings3.addIdentifierBinding("$1", new SimpleBindingValue("300"));
+        bindings3.addIdentifierBinding("$2", new SimpleBindingValue("302"));
+        bindings3.addIdentifierBinding("$0", new NullBindingValue(String.class));
 
         QueryInfo query1 = new QueryInfo();  // will have 3 bindings
         QueryInfo query2 = new QueryInfo();  // will have 1 bindings
@@ -322,12 +324,12 @@ public class QueryExecutionInfoFormatterTest {
         // with multiple bindings
         execInfo.setQueries(Collections.singletonList(query1));
         result = formatter.format(execInfo);
-        assertEquals("Bindings:[($0=100,$1=101,$2=102),($0=200,$1=201,$2=202),($0=301,$1=300,$2=302)]", result);
+        assertEquals("Bindings:[($0=100,$1=101,$2=102),($0=200,$1=null(Long),$2=202),($0=null(String),$1=300,$2=302)]", result);
 
         // with single bindings
         execInfo.setQueries(Collections.singletonList(query2));
         result = formatter.format(execInfo);
-        assertEquals("Bindings:[($0=200,$1=201,$2=202)]", result);
+        assertEquals("Bindings:[($0=200,$1=null(Long),$2=202)]", result);
 
         // with no bindings
         execInfo.setQueries(Collections.singletonList(query3));

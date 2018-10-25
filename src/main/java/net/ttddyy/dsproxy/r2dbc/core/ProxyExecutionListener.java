@@ -9,7 +9,7 @@ import io.r2dbc.spi.Statement;
  *
  * @author Tadaya Tsuyukubo
  */
-public interface ProxyDataSourceListener {
+public interface ProxyExecutionListener {
 
     /**
      * Called before every invocation of methods.

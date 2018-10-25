@@ -8,8 +8,8 @@ import java.util.List;
  * Copy from datasource-proxy
  * @author Tadaya Tsuyukubo
  */
-public class CompositeProxyDataSourceListener implements ProxyDataSourceListener {
-    private List<ProxyDataSourceListener> listeners = new ArrayList<>();
+public class CompositeProxyExecutionListener implements ProxyExecutionListener {
+    private List<ProxyExecutionListener> listeners = new ArrayList<>();
 
     @Override
     public void beforeMethod(MethodExecutionInfo executionInfo) {
@@ -31,19 +31,19 @@ public class CompositeProxyDataSourceListener implements ProxyDataSourceListener
         this.listeners.forEach(listener -> listener.afterQuery(execInfo));
     }
 
-    public boolean add(ProxyDataSourceListener listener) {
+    public boolean add(ProxyExecutionListener listener) {
         return this.listeners.add(listener);
     }
 
-    public boolean addAll(Collection<ProxyDataSourceListener> listeners) {
+    public boolean addAll(Collection<ProxyExecutionListener> listeners) {
         return this.listeners.addAll(listeners);
     }
 
-    public List<ProxyDataSourceListener> getListeners() {
+    public List<ProxyExecutionListener> getListeners() {
         return this.listeners;
     }
 
-//    public void setListeners(List<ProxyDataSourceListener> listeners) {
+//    public void setListeners(List<ProxyExecutionListener> listeners) {
 //        this.listeners = listeners;
 //    }
 

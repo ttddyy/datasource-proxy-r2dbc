@@ -23,7 +23,7 @@ import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
-import net.ttddyy.dsproxy.r2dbc.core.ProxyDataSourceListener;
+import net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -64,7 +64,7 @@ final class PostgresqlExample implements Example<String> {
         MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
         // TODO: better API
-        ProxyDataSourceListener listener = new ProxyDataSourceListener() {
+        ProxyExecutionListener listener = new ProxyExecutionListener() {
             @Override
             public void afterQuery(QueryExecutionInfo execInfo) {
                 String queryLog = queryExecutionFormatter.format(execInfo);

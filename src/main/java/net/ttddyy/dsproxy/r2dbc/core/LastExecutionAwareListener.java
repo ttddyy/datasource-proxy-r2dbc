@@ -7,7 +7,7 @@ package net.ttddyy.dsproxy.r2dbc.core;
  *
  * @author Tadaya Tsuyukubo
  */
-public class LastExecutionAwareListener implements ProxyDataSourceListener {
+public class LastExecutionAwareListener implements ProxyExecutionListener {
 
     private QueryExecutionInfo beforeQueryExecutionInfo;
     private QueryExecutionInfo afterQueryExecutionInfo;

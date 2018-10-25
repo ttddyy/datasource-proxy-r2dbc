@@ -2,7 +2,7 @@ package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Result;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
-import net.ttddyy.dsproxy.r2dbc.core.ProxyDataSourceListener;
+import net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -24,7 +24,7 @@ public abstract class CallbackSupport {
     /**
      * Augment method invocation and call method listener.
      */
-    protected Object proceedExecution(Method method, Object target, Object[] args, ProxyDataSourceListener listener, String connectionId) throws Throwable {
+    protected Object proceedExecution(Method method, Object target, Object[] args, ProxyExecutionListener listener, String connectionId) throws Throwable {
         AtomicReference<Instant> startTimeHolder = new AtomicReference<>();
 
         MethodExecutionInfo executionInfo = new MethodExecutionInfo();
@@ -114,7 +114,7 @@ public abstract class CallbackSupport {
      * Augment query execution result to hook up listener lifecycle.
      */
     protected Flux<? extends Result> interceptQueryExecution(Publisher<? extends Result> flux,
-                                                             ProxyDataSourceListener listener, QueryExecutionInfo executionInfo) {
+                                                             ProxyExecutionListener listener, QueryExecutionInfo executionInfo) {
 
         AtomicReference<Instant> startTimeHolder = new AtomicReference<>();
 

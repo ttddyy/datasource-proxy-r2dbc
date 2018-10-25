@@ -33,11 +33,11 @@ public class MethodExecutionInfoFormatterTest {
         MethodExecutionInfoFormatter formatter = MethodExecutionInfoFormatter.withDefault();
         String result = formatter.format(executionInfo);
 
-        assertEquals("  1: Thread:5 Connection:ABC Time:23 Long#indexOf()", result);
+        assertEquals("  1: Thread:5 Connection:ABC Time:23  Long#indexOf()", result);
 
         // second time should increase the sequence
         result = formatter.format(executionInfo);
-        assertEquals("  2: Thread:5 Connection:ABC Time:23 Long#indexOf()", result);
+        assertEquals("  2: Thread:5 Connection:ABC Time:23  Long#indexOf()", result);
 
     }
 

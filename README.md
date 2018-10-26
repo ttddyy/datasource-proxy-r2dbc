@@ -4,19 +4,57 @@
 
 ## About
 
-Provide listener for R2DBC query executions and method invocations.
+Create proxies for R2DBC SPI, and provides listeners for query executions and method invocations.
 
-### Listener API
+Registered listeners receive callbacks:
+- before/after query executions
+- before/after any method calls on `Connection`, `Batch` and `Statement` 
 
-- before/after query execution
-- (operations on `Connection`, `Batch` and `Statement`) 
+
+## Setup
+
+Wrap original `ConnectionFactory` by `ProxyConnectionFactory` and pass it to R2DBC client.
+
+```java
+// original connection factory
+ConnectionFactory connectionFactory = new PostgresqlConnectionFactory(configuration);
+
+// create proxied connection factory
+ConnectionFactory proxyConnectionFactory =
+  ProxyConnectionFactory.create(connectionFactory)  // wrap original ConnectionFactory
+    .onAfterMethod(mono -> {
+      ...   // callback after method execution
+    })  
+    .onAfterQuery(mono -> {
+      ...  //  callback after query execution
+    });
+
+// initialize client with the wrappd connection factory
+R2dbc client = new R2dbc(proxyConnectionFactory);
+```
+
+
+## Usage example
+
+- Query logging
+- Slow query detection
+- Method tracing
+- Metrics
+- Assertion/Verification
+  - Connection leak detection
+  - Transaction check
+- Custom logic injection
+- etc.
+
 
 ### Query logging
 
-When query is executed by `Batch#execute()` or `Statement#execute()`, log query execution
-information.
+Listener is called when query is executed by `Batch#execute()` or `Statement#execute()`.
+The callback contains query execution information(`QueryExecutionInfo`) such as query string,
+bindings, type, execution time, etc.
+You could output/log the information.
 
-(wrapped for display purpose)
+*Sample Output (wrapped for display purpose):*
 ```sql
 # Statement with no bindings
 # 
@@ -37,16 +75,96 @@ Type:Statement BatchSize:0 BindingsSize:2
 Query:["INSERT INTO test VALUES ($1)"], Bindings:[(100),(200)]
 ```
 
+`QueryExecutionInfoFormatter`, which converts `QueryExecutionInfo` to `String`, can be used
+out of the box to generate log statements.
+
+
+### Slow query detection
+
+There are two types of slow query detection.
+- Detect slow query *AFTER* query has executed.
+- Detect slow query *WHILE* query is running.
+
+Former is simple. On `afterQuery` callback, check the execution time.
+If it took more than threashold, perform an action such as logging, send notification, etc. 
+
+To perform action _while_ query is still executing and passed threashold time, one implementation
+is to create a watcher that checks running queries and notify ones exceeded the threshold.
+
+Planning to port [`SlowQueryListener` from datasource-proxy](http://ttddyy.github.io/datasource-proxy/docs/current/user-guide/#_slow_query_logging_listener). 
+
+
+*Sample: Perform slow query after execution*
+```java
+Duration threashold = Duration.of(...);
+
+ConnectionFactory proxyConnectionFactory =
+  ProxyConnectionFactory.create(connectionFactory)
+    .onAfterQuery(mono -> mono
+       .filter(execInfo -> threashold.minus(execInfo.getExecuteDuration()).isNegative())
+       .doOnNext(execInfo -> {
+         // slow query logic
+       })
+       .subscribe());
+```
+
+TBD for slow query detection _while_ query is executing.
+
+
 ### Method tracing
 
-When any methods on `Connection`, `Batch`, or `Statement` are invoked,
-_"beforeMethod()/afterMethod()"_ on listener is called.
+When any methods on `Connection`, `Batch`, or `Statement` are called,
+listeners receive callbacks on before and after invocations.
 
+Below output simply printed out the method execution information(`MethodExecutionInfo`)
+at each method invocation.  
+Essentially, this shows interaction with R2DBC SPI. 
+
+You could even call distributed tracing system to record events.
+
+*Sample: Execution with transaction (see [sample](#sample)):*
+```sql
+  1: Thread:0 Connection:1 Time:3  PostgresqlConnection#createStatement()
+  2: Thread:0 Connection:1 Time:4  ExtendedQueryPostgresqlStatement#bind()
+  3: Thread:0 Connection:1 Time:0  ExtendedQueryPostgresqlStatement#add()
+  4: Thread:30 Connection:1 Time:13  PostgresqlConnection#beginTransaction()
+  5: Thread:30 Connection:1 Time:34  ExtendedQueryPostgresqlStatement#execute()
+  6: Thread:30 Connection:1 Time:6  PostgresqlConnection#commitTransaction()
+  7: Thread:30 Connection:1 Time:6  PostgresqlConnection#close()
+```
+
+`MethodExecutionInfoFormatter` is used to generate above log statement.
+
+### Metrics
+
+On every callback, any information can update metrics.
+
+For method execution callbacks, number of opened connection, method execution time that
+took more than X, etc.; For query execution callbacks, number of queries, type of query(SELECT, DELETE, ...), 
+execution time, etc. can be used for metrics. 
+
+
+### Assertion/Verification
+
+By keeping invoked methods and/or executed queries, you can perform assertion/verification
+to see target logic has performed appropriately.
+
+For example, by keeping track of connection open/close method calls, connection leaks can be
+detected or verified.
+
+Another example is to check target queries are executed on the same connection.
+This could verify the premise of transaction.
+  
+
+### Custom logic injection
+
+Any logic can be performed at callback.
+Thus, you can write logic that performs audit log, send notification, call external system, etc.
+
+
+----
 
 ## Sample
-
-This example shows how to print out invoked methods with some additional info.
-Essentially, it displays interaction with R2DBC SPI for query execution.
 
 Client code:
 ```java
@@ -98,6 +216,7 @@ Type:Statement BatchSize:0 BindingsSize:1
 Query:["INSERT INTO test VALUES ($1)"] Bindings:[(200)]
 ```
 
+----
 
 ## Install
 
@@ -109,32 +228,13 @@ Query:["INSERT INTO test VALUES ($1)"] Bindings:[(200)]
 - [jitpack][jitpack]
 
 
-## Setup
+## Versions
 
-Wrap original `ConnectionFactory` by `ProxyConnectionFactory` and pass it to R2DBC client.
+Developed on following versions.
 
-```java
-// original connection factory
-ConnectionFactory connectionFactory = new PostgresqlConnectionFactory(this.configuration);
-
-
-// converters
-QueryExecutionInfoFormatter queryExecutionFormatter = QueryExecutionInfoFormatter.showAll();
-MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
-
-// create proxied connection factory
-ConnectionFactory proxyConnectionFactory =
-  ProxyConnectionFactory.create(connectionFactory)  // wrap original ConnectionFactory
-    .onAfterMethod(execInfo -> {
-      ...   // callback after method execution
-    })  
-    .onAfterQuery(execInfo -> {
-      ...  //  callback after query execution
-    });
-
-// initialize client with the wrappd connection factory
-this.r2dbc = new R2dbc(proxyConnectionFactory);
-```
+| datasource-proxy-r2dbc |       r2dbc-spi      |   reactor-core  |
+|:----------------------:|:--------------------:|:---------------:|
+| 0.1-SNAPSHOT           | 1.0.0.BUILD-SNAPSHOT | Californium-SR1 |
 
 ----
 

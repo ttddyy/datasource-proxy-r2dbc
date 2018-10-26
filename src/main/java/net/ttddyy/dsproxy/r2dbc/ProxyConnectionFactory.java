@@ -116,4 +116,9 @@ public class ProxyConnectionFactory implements ConnectionFactory {
         return this;
     }
 
+    public ProxyConnectionFactory listener(ProxyExecutionListener listener) {
+        this.proxyConfig.addListener(listener);
+        return this;
+    }
+
 }

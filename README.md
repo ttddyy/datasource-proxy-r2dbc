@@ -4,14 +4,149 @@
 
 ## About
 
-Create proxies for R2DBC SPI, and provides listeners for query executions and method invocations.
+Provide listeners that receive callbacks of query executions and method invocations on R2DBC SPI.
 
-Registered listeners receive callbacks:
-- before/after query executions
+Callbacks are:
+- before/after query executions when `Batch#execute()` or `Statement#execute()` is called.
 - before/after any method calls on `Connection`, `Batch` and `Statement` 
 
+Here is sample use cases for listeners:
+- Query logging
+- Slow query detection
+- Method tracing
+- Metrics
+- Assertion/Verification
+  - Connection leak detection
+  - Transaction check
+- Custom logic injection
+- etc.
 
-## Setup
+
+## Use cases
+
+### Query logging
+
+When query is executed by `Batch#execute()` or `Statement#execute()`, listener receives query
+callbacks.
+The callback contains query execution information(`QueryExecutionInfo`) such as query string,
+execution type, bindings, execution time, etc.  
+You could output/log the information.
+
+*Sample Output (wrapped for display purpose):*
+```sql
+# Statement with no bindings
+# 
+Thread:reactor-tcp-nio-1(30) Connection:1 Success:True Time:34
+Type:Statement BatchSize:0 BindingsSize:0 
+Query:["SELECT value FROM test"], Bindings:[]
+
+# Batch query
+#
+Thread:reactor-tcp-nio-3(32) Connection:2 Success:True Time:4
+Type:Batch BatchSize:2 BindingsSize:0
+Query:["INSERT INTO test VALUES(200)","SELECT value FROM test"], Bindings:[]
+
+# Statement with multiple bindings
+#
+Thread:reactor-tcp-nio-1(30) Connection:3 Success:True Time:21
+Type:Statement BatchSize:0 BindingsSize:2
+Query:["INSERT INTO test VALUES ($1,$2)"], Bindings:[(100,101),(200,null(int))]
+```
+
+
+### Slow query detection
+
+There are two types of slow query detection.
+- Detect slow query *AFTER* query has executed.
+- Detect slow query *WHILE* query is running.
+
+Former is simple. On `afterQuery` callback, check the execution time.
+If it took more than threashold, perform an action such as logging, send notification, etc. 
+
+To perform some action _while_ query is still executing and passed threashold time, one implementation
+is to create a watcher that checks running queries and notify ones exceeded the threshold.  
+It is currently in plan to port [`SlowQueryListener` from datasource-proxy](http://ttddyy.github.io/datasource-proxy/docs/current/user-guide/#_slow_query_logging_listener). 
+
+
+### Method tracing
+
+When any methods on `Connection`, `Batch`, or `Statement` are called,
+listeners receive callbacks on before and after invocations.
+
+Below output simply printed out the method execution information(`MethodExecutionInfo`)
+at each method invocation.  
+Essentially, this shows interaction with R2DBC SPI. 
+
+You could even call distributed tracing system to create span for the actions such as
+connection open/close.
+
+*Sample: Execution with transaction (see [sample](#sample)):*
+```sql
+  1: Thread:0 Connection:1 Time:3  PostgresqlConnection#createStatement()
+  2: Thread:0 Connection:1 Time:4  ExtendedQueryPostgresqlStatement#bind()
+  3: Thread:0 Connection:1 Time:0  ExtendedQueryPostgresqlStatement#add()
+  4: Thread:30 Connection:1 Time:13  PostgresqlConnection#beginTransaction()
+  5: Thread:30 Connection:1 Time:34  ExtendedQueryPostgresqlStatement#execute()
+  6: Thread:30 Connection:1 Time:6  PostgresqlConnection#commitTransaction()
+  7: Thread:30 Connection:1 Time:6  PostgresqlConnection#close()
+```
+
+
+### Metrics
+
+On every callback, any obtained information can update metrics.
+
+For example, on method execution, number of opened connections, number of rollbacks, 
+method execution time, etc; for query execution, number of queries, type of query
+(SELECT, DELETE, ...), execution time, etc. can be used for metrics. 
+
+
+### Assertion/Verification
+
+By inspecting invoked methods and/or executed queries, you can verify your logic has performed
+as expected.
+
+For example, by keeping track of connection open/close method calls, connection leaks can be
+detected or verified.
+
+Another example is to check group of the target queries are executed on the same connection.
+This could verify the premise of transaction that queries need to be performed on the same
+connection in order to be in the same transaction.
+  
+
+### Custom logic injection
+
+Any logic can be performed on callbacks.
+Thus, you can write own logic that performs anything, such as audit logging, sending
+notifications, calling external system, etc.
+
+
+## Listener API
+
+`ProxyExecutionListenr` is the listener interface.
+This defines callbacks for before/after method invocation and query execution.
+
+```java
+void beforeMethod(MethodExecutionInfo executionInfo);
+
+void afterMethod(MethodExecutionInfo executionInfo);
+
+void beforeQuery(QueryExecutionInfo execInfo);
+
+void afterQuery(QueryExecutionInfo execInfo);
+```
+
+`MethodExecutionInfo` and `QueryExecutionInfo` contains contextual information about the
+method/query execution.
+
+Any method calls on proxied `Connection`, `Batch`, and `Statement`
+triggers method callbacks - `beforeMethod()` and `afterMethod()`
+`Batch#execute()` and `Statement#execute()` triggers query callbacks - `beforeQuery()`
+and `afterQuery`
+
+----
+
+# Setup
 
 Wrap original `ConnectionFactory` by `ProxyConnectionFactory` and pass it to R2DBC client.
 
@@ -33,68 +168,57 @@ ConnectionFactory proxyConnectionFactory =
 R2dbc client = new R2dbc(proxyConnectionFactory);
 ```
 
+## Install
 
-## Usage example
+- local maven install
+  ```shell
+  ./mvnw install
+  ```
 
-- Query logging
-- Slow query detection
-- Method tracing
-- Metrics
-- Assertion/Verification
-  - Connection leak detection
-  - Transaction check
-- Custom logic injection
-- etc.
+- [jitpack][jitpack]
 
 
-### Query logging
+## Versions
 
-Listener is called when query is executed by `Batch#execute()` or `Statement#execute()`.
-The callback contains query execution information(`QueryExecutionInfo`) such as query string,
-bindings, type, execution time, etc.
-You could output/log the information.
+datasource-proxy-r2dbc is developed on following versions.
 
-*Sample Output (wrapped for display purpose):*
-```sql
-# Statement with no bindings
-# 
-Thread:reactor-tcp-nio-1(30) Connection:1 Success:True Time:34
-Type:Statement BatchSize:0 BindingsSize:0 
-Query:["SELECT value FROM test"], Bindings:[]
+| datasource-proxy-r2dbc |       r2dbc-spi      |   reactor-core  |
+|:----------------------:|:--------------------:|:---------------:|
+| 0.1-SNAPSHOT           | 1.0.0.BUILD-SNAPSHOT | Californium-SR1 |
 
-# Batch query
-#
-Thread:reactor-tcp-nio-3(32) Connection:2 Success:True Time:4
-Type:Batch BatchSize:2 BindingsSize:0
-Query:["INSERT INTO test VALUES(200)","SELECT value FROM test"], Bindings:[]
 
-# Statement with multiple bindings
-#
-Thread:reactor-tcp-nio-1(30) Connection:3 Success:True Time:21
-Type:Statement BatchSize:0 BindingsSize:2
-Query:["INSERT INTO test VALUES ($1)"], Bindings:[(100),(200)]
-```
+----
+
+# Sample Configuration
+
+## Query logging
+
+On after query callback, write out executed query information.
+This can be done in *before* query execution; however, some of the attributes are only
+available at *after* query execution such as execution time, successfully executed, etc.
 
 `QueryExecutionInfoFormatter`, which converts `QueryExecutionInfo` to `String`, can be used
 out of the box to generate log statements.
 
+```java
+QueryExecutionInfoFormatter queryExecutionFormatter = QueryExecutionInfoFormatter.showAll();
 
-### Slow query detection
+ConnectionFactory proxyConnectionFactory =
+  ProxyConnectionFactory.create(connectionFactory)  // wrap original ConnectionFactory
+    // on every query execution
+    .onAfterQuery(execInfo ->
+      execInfo.map(queryExecutionFormatter::format)
+              .doOnNext(System.out::println)       // print out executed query
+              .subscribe());
+```
 
-There are two types of slow query detection.
-- Detect slow query *AFTER* query has executed.
-- Detect slow query *WHILE* query is running.
+## Slow query detection
 
-Former is simple. On `afterQuery` callback, check the execution time.
-If it took more than threashold, perform an action such as logging, send notification, etc. 
+### Detect slow query AFTER query has executed
 
-To perform action _while_ query is still executing and passed threashold time, one implementation
-is to create a watcher that checks running queries and notify ones exceeded the threshold.
+On after query execution, check whether the query execution time has exceeded the threashold
+time, then perform any action.  
 
-Planning to port [`SlowQueryListener` from datasource-proxy](http://ttddyy.github.io/datasource-proxy/docs/current/user-guide/#_slow_query_logging_listener). 
-
-
-*Sample: Perform slow query after execution*
 ```java
 Duration threashold = Duration.of(...);
 
@@ -108,59 +232,29 @@ ConnectionFactory proxyConnectionFactory =
        .subscribe());
 ```
 
+### Detect slow query WHILE query is executing
+
 TBD for slow query detection _while_ query is executing.
 
 
-### Method tracing
+## Method tracing
 
-When any methods on `Connection`, `Batch`, or `Statement` are called,
-listeners receive callbacks on before and after invocations.
+At each invocation of methods, perform action such as printing out the invoked method,
+create a span, or update metrics.
 
-Below output simply printed out the method execution information(`MethodExecutionInfo`)
-at each method invocation.  
-Essentially, this shows interaction with R2DBC SPI. 
+`MethodExecutionInfoFormatter` is used to generate log string.
 
-You could even call distributed tracing system to record events.
+```java
+MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
-*Sample: Execution with transaction (see [sample](#sample)):*
-```sql
-  1: Thread:0 Connection:1 Time:3  PostgresqlConnection#createStatement()
-  2: Thread:0 Connection:1 Time:4  ExtendedQueryPostgresqlStatement#bind()
-  3: Thread:0 Connection:1 Time:0  ExtendedQueryPostgresqlStatement#add()
-  4: Thread:30 Connection:1 Time:13  PostgresqlConnection#beginTransaction()
-  5: Thread:30 Connection:1 Time:34  ExtendedQueryPostgresqlStatement#execute()
-  6: Thread:30 Connection:1 Time:6  PostgresqlConnection#commitTransaction()
-  7: Thread:30 Connection:1 Time:6  PostgresqlConnection#close()
+ConnectionFactory proxyConnectionFactory =
+  ProxyConnectionFactory.create(connectionFactory)  // wrap original ConnectionFactory
+    // on every method invocation
+    .onAfterMethod(execInfo ->  
+      execInfo.map(methodExecutionFormatter::format)
+              .doOnNext(System.out::println)        // print out method execution (method tracing)
+              .subscribe())
 ```
-
-`MethodExecutionInfoFormatter` is used to generate above log statement.
-
-### Metrics
-
-On every callback, any information can update metrics.
-
-For method execution callbacks, number of opened connection, method execution time that
-took more than X, etc.; For query execution callbacks, number of queries, type of query(SELECT, DELETE, ...), 
-execution time, etc. can be used for metrics. 
-
-
-### Assertion/Verification
-
-By keeping invoked methods and/or executed queries, you can perform assertion/verification
-to see target logic has performed appropriately.
-
-For example, by keeping track of connection open/close method calls, connection leaks can be
-detected or verified.
-
-Another example is to check target queries are executed on the same connection.
-This could verify the premise of transaction.
-  
-
-### Custom logic injection
-
-Any logic can be performed at callback.
-Thus, you can write logic that performs audit log, send notification, call external system, etc.
-
 
 ----
 
@@ -215,26 +309,6 @@ Thread:reactor-tcp-nio-1(30) Connection:1 Success:True Time:32
 Type:Statement BatchSize:0 BindingsSize:1 
 Query:["INSERT INTO test VALUES ($1)"] Bindings:[(200)]
 ```
-
-----
-
-## Install
-
-- local maven install
-  ```shell
-  ./mvnw install
-  ```
-
-- [jitpack][jitpack]
-
-
-## Versions
-
-Developed on following versions.
-
-| datasource-proxy-r2dbc |       r2dbc-spi      |   reactor-core  |
-|:----------------------:|:--------------------:|:---------------:|
-| 0.1-SNAPSHOT           | 1.0.0.BUILD-SNAPSHOT | Californium-SR1 |
 
 ----
 

@@ -62,7 +62,7 @@ final class PostgresqlExample implements Example<String> {
         MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
         ConnectionFactory proxyConnectionFactory =
-                ProxyConnectionFactory.of(connectionFactory)
+                ProxyConnectionFactory.create(connectionFactory)
                         .onAfterMethod(execInfo ->
                                 execInfo.map(methodExecutionFormatter::format)
                                         .doOnNext(System.out::println)

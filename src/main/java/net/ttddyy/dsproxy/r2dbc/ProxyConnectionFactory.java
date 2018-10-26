@@ -9,6 +9,7 @@ import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -24,12 +25,15 @@ public class ProxyConnectionFactory implements ConnectionFactory {
         this.delegate = delegate;
     }
 
-    public static ProxyConnectionFactory of(ConnectionFactory delegate) {
+    // TODO: may change to immutable style creation
+
+    public static ProxyConnectionFactory create(ConnectionFactory delegate) {
+        Objects.requireNonNull(delegate, "ConnectionFactory to delegate is required");
         return new ProxyConnectionFactory(delegate);
     }
 
-    public static ProxyConnectionFactory of(ConnectionFactory delegate, ProxyConfig proxyConfig) {
-        return of(delegate).proxyConfig(proxyConfig);
+    public static ProxyConnectionFactory create(ConnectionFactory delegate, ProxyConfig proxyConfig) {
+        return create(delegate).proxyConfig(proxyConfig);
     }
 
     @Override
@@ -52,10 +56,20 @@ public class ProxyConnectionFactory implements ConnectionFactory {
         return this;
     }
 
-    public ProxyConnectionFactory onMethod(Consumer<Mono<MethodExecutionInfo>> consumer) {
+    public ProxyConnectionFactory onMethodExecution(Consumer<Mono<MethodExecutionInfo>> consumer) {
         this.proxyConfig.addListener(new ProxyExecutionListener() {
             @Override
             public void onMethodExecution(MethodExecutionInfo executionInfo) {
+                consumer.accept(Mono.just(executionInfo));
+            }
+        });
+        return this;
+    }
+
+    public ProxyConnectionFactory onQueryExecution(Consumer<Mono<QueryExecutionInfo>> consumer) {
+        this.proxyConfig.addListener(new ProxyExecutionListener() {
+            @Override
+            public void onQueryExecution(QueryExecutionInfo executionInfo) {
                 consumer.accept(Mono.just(executionInfo));
             }
         });

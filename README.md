@@ -64,7 +64,7 @@ QueryExecutionInfoFormatter queryExecutionFormatter = QueryExecutionInfoFormatte
 MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
 ConnectionFactory proxyConnectionFactory =
-  ProxyConnectionFactory.of(connectionFactory)  // wrap original ConnectionFactory
+  ProxyConnectionFactory.create(connectionFactory)  // wrap original ConnectionFactory
     // on every method invocation
     .onAfterMethod(execInfo ->  
       execInfo.map(methodExecutionFormatter::format)
@@ -124,7 +124,7 @@ MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoForma
 
 // create proxied connection factory
 ConnectionFactory proxyConnectionFactory =
-  ProxyConnectionFactory.of(connectionFactory)  // wrap original ConnectionFactory
+  ProxyConnectionFactory.create(connectionFactory)  // wrap original ConnectionFactory
     .onAfterMethod(execInfo -> {
       ...   // callback after method execution
     })  

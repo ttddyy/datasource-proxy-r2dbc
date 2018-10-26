@@ -25,7 +25,8 @@ public abstract class CallbackSupport {
     /**
      * Augment method invocation and call method listener.
      */
-    protected Object proceedExecution(Method method, Object target, Object[] args, ProxyExecutionListener listener, String connectionId) throws Throwable {
+    protected Object proceedExecution(Method method, Object target, Object[] args,
+                                      ProxyExecutionListener listener, String connectionId) throws Throwable {
         AtomicReference<Instant> startTimeHolder = new AtomicReference<>();
 
         MethodExecutionInfo executionInfo = new MethodExecutionInfo();
@@ -88,6 +89,11 @@ public abstract class CallbackSupport {
             executionInfo.setProxyEventType(ProxyEventType.BEFORE_METHOD);
             listener.onMethodExecution(executionInfo);
 
+            String threadName = Thread.currentThread().getName();
+            long threadId = Thread.currentThread().getId();
+            executionInfo.setThreadName(threadName);
+            executionInfo.setThreadId(threadId);
+
             Instant startTime = this.clock.instant();
 
             Object result = null;
@@ -95,11 +101,8 @@ public abstract class CallbackSupport {
             try {
                 result = method.invoke(target, args);
             } catch (InvocationTargetException ex) {
-                thrown = ex;
-                throw ex.getTargetException();
-            } catch (Throwable throwable) {
-                thrown = throwable;
-                throw throwable;
+                thrown = ex.getTargetException();
+                throw thrown;
             } finally {
                 executionInfo.setResult(result);
                 executionInfo.setThrown(thrown);

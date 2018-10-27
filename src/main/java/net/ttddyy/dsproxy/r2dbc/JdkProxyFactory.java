@@ -2,6 +2,7 @@ package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
+import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
 
 import java.lang.reflect.InvocationHandler;
@@ -23,6 +24,13 @@ public class JdkProxyFactory implements ProxyFactory {
     }
 
     @Override
+    public ConnectionFactory createConnectionFactory(ConnectionFactory connectionFactory) {
+        return (ConnectionFactory) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+                new Class[]{ConnectionFactory.class},
+                new ConnectionFactoryInvocationHandler(connectionFactory, this.proxyConfig));
+    }
+
+    @Override
     public Connection createConnection(Connection connection, String connectionId) {
         return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
                 new Class[] { Connection.class },
@@ -41,6 +49,20 @@ public class JdkProxyFactory implements ProxyFactory {
         return (Statement<?>) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
                 new Class[] { Statement.class },
                 new StatementInvocationHandler(statement, query, connectionId, this.proxyConfig));
+    }
+
+    public static class ConnectionFactoryInvocationHandler implements InvocationHandler {
+
+        private ReactiveConnectionFactoryCallback delegate;
+
+        public ConnectionFactoryInvocationHandler(ConnectionFactory connectionFactory, ProxyConfig proxyConfig) {
+            this.delegate = new ReactiveConnectionFactoryCallback(connectionFactory, proxyConfig);
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            return delegate.invoke(proxy, method, args);
+        }
     }
 
     public static class ConnectionInvocationHandler implements InvocationHandler {

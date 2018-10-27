@@ -26,7 +26,6 @@ import static java.util.stream.Collectors.toList;
 public class ReactiveStatementCallback extends CallbackSupport {
 
     private Statement<?> statement;
-    private ProxyConfig proxyConfig;
 
     private String connectionId;
     private String query;
@@ -35,10 +34,10 @@ public class ReactiveStatementCallback extends CallbackSupport {
     private int currentBindingsIndex = 0;
 
     public ReactiveStatementCallback(Statement<?> statement, String query, String connectionId, ProxyConfig proxyConfig) {
+        super(proxyConfig);
         this.statement = statement;
         this.query = query;
         this.connectionId = connectionId;
-        this.proxyConfig = proxyConfig;
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

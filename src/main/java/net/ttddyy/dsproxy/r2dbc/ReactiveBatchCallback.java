@@ -21,15 +21,14 @@ import static java.util.stream.Collectors.toList;
 public class ReactiveBatchCallback extends CallbackSupport {
 
     private Batch<?> batch;
-    private ProxyConfig proxyConfig;
 
     private String connectionId;
     private List<String> queries = new ArrayList<>();
 
     public ReactiveBatchCallback(Batch<?> batch, String connectionId, ProxyConfig proxyConfig) {
+        super(proxyConfig);
         this.batch = batch;
         this.connectionId = connectionId;
-        this.proxyConfig = proxyConfig;
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

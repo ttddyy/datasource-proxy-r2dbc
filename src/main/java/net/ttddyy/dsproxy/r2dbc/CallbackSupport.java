@@ -1,5 +1,7 @@
 package net.ttddyy.dsproxy.r2dbc;
 
+import io.r2dbc.spi.Connection;
+import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Result;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyEventType;
@@ -7,6 +9,7 @@ import net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
+import reactor.util.function.Tuples;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -20,7 +23,24 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public abstract class CallbackSupport {
 
+    private static final Method CONNECTION_FACTORY_CREATE_METHOD;
+
+    static {
+        try {
+            CONNECTION_FACTORY_CREATE_METHOD = ConnectionFactory.class.getMethod("create");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     protected Clock clock = Clock.systemUTC();
+
+    protected ProxyConfig proxyConfig;
+
+
+    public CallbackSupport(ProxyConfig proxyConfig) {
+        this.proxyConfig = proxyConfig;
+    }
 
     /**
      * Augment method invocation and call method listener.
@@ -36,6 +56,9 @@ public abstract class CallbackSupport {
         executionInfo.setConnectionId(connectionId);
 
         Class<?> returnType = method.getReturnType();
+
+        // special handling for ConnectionFactory#create method
+        boolean isConnectionCreateMethod = CONNECTION_FACTORY_CREATE_METHOD.equals(method);
 
         if (Publisher.class.isAssignableFrom(returnType)) {
 
@@ -62,6 +85,24 @@ public abstract class CallbackSupport {
                         listener.onMethodExecution(executionInfo);
                     })
                     .concatWith(result)
+                    .map(resultObj -> {
+
+                        executionInfo.setResult(resultObj);
+
+                        // special handling for ConnectionFactory#create()
+                        // Since connection has created, call ConnectionIdManager to get connectionId.
+                        // Populate it for after method callback.
+                        // Also, return tuple to pass the generated connection id to the proxy logic.
+                        if (isConnectionCreateMethod) {
+                            Connection conn = (Connection) resultObj;
+                            String connId = this.proxyConfig.getConnectionIdManager().getId(conn);
+
+                            executionInfo.setConnectionId(connId);
+                            return Tuples.of(resultObj, connId);
+                        }
+
+                        return resultObj;
+                    })
                     .doOnError(throwable -> {
                         executionInfo.setThrown(throwable);
                     })

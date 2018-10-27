@@ -62,7 +62,7 @@ final class PostgresqlExample implements Example<String> {
         MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
         ConnectionFactory proxyConnectionFactory =
-                ProxyConnectionFactory.create(connectionFactory)
+                ProxyConnectionFactoryBuilder.create(connectionFactory)
                         .onAfterMethod(execInfo ->
                                 execInfo.map(methodExecutionFormatter::format)
                                         .doOnNext(System.out::println)
@@ -70,7 +70,8 @@ final class PostgresqlExample implements Example<String> {
                         .onAfterQuery(execInfo ->
                                 execInfo.map(queryExecutionFormatter::format)
                                         .doOnNext(System.out::println)
-                                        .subscribe());
+                                        .subscribe())
+                        .build();
 
         this.r2dbc = new R2dbc(proxyConnectionFactory);
     }

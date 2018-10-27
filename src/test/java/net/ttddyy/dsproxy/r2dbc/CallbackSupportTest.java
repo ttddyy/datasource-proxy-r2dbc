@@ -1,19 +1,26 @@
 package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Batch;
+import io.r2dbc.spi.Connection;
+import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Result;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionIdManager;
 import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyEventType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Publisher;
 import org.springframework.util.ReflectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
+import reactor.util.function.Tuple2;
 
 import java.lang.reflect.Method;
 import java.time.Clock;
@@ -28,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,18 +43,24 @@ import static org.mockito.Mockito.when;
 /**
  * @author Tadaya Tsuyukubo
  */
+@ExtendWith(MockitoExtension.class)
 public class CallbackSupportTest {
 
     private CallbackSupport callbackSupport;
 
+    @Mock
+    private ProxyConfig proxyConfig;
+
     @BeforeEach
     void setUp() {
-        this.callbackSupport = new CallbackSupport() {
+        this.callbackSupport = new CallbackSupport(this.proxyConfig) {
         };
 
         Clock clock = Clock.fixed(Instant.ofEpochSecond(100), ZoneId.systemDefault());
         this.callbackSupport.setClock(clock);
     }
+
+    // TODO: write test for proceedExecution() for ConnectionFactory#create()
 
     @Test
     void interceptQueryExecution() {
@@ -178,6 +192,7 @@ public class CallbackSupportTest {
         assertNull(listener.getAfterQueryExecutionInfo());
 
         assertEquals(target, afterMethodExecution.getTarget());
+        assertEquals(mockResult, afterMethodExecution.getResult());
         assertEquals(executeMethod, afterMethodExecution.getMethod());
         assertEquals(args, afterMethodExecution.getMethodArgs());
         assertEquals(connectionId, afterMethodExecution.getConnectionId());
@@ -230,6 +245,8 @@ public class CallbackSupportTest {
         assertNull(listener.getBeforeQueryExecutionInfo());
         assertNull(listener.getAfterQueryExecutionInfo());
 
+        assertNull(afterMethodExecution.getResult());
+
         assertEquals(target, afterMethodExecution.getTarget());
         assertEquals(executeMethod, afterMethodExecution.getMethod());
         assertEquals(args, afterMethodExecution.getMethodArgs());
@@ -279,6 +296,7 @@ public class CallbackSupportTest {
         assertNull(listener.getAfterQueryExecutionInfo());
 
         assertEquals(target, afterMethodExecution.getTarget());
+        assertEquals(mockBatch, afterMethodExecution.getResult());
         assertEquals(addMethod, afterMethodExecution.getMethod());
         assertEquals(args, afterMethodExecution.getMethodArgs());
         assertEquals(connectionId, afterMethodExecution.getConnectionId());
@@ -324,6 +342,8 @@ public class CallbackSupportTest {
         assertNull(listener.getBeforeQueryExecutionInfo());
         assertNull(listener.getAfterQueryExecutionInfo());
 
+        assertNull(afterMethodExecution.getResult());
+
         assertEquals(target, afterMethodExecution.getTarget());
         assertEquals(addMethod, afterMethodExecution.getMethod());
         assertEquals(args, afterMethodExecution.getMethodArgs());
@@ -340,6 +360,57 @@ public class CallbackSupportTest {
         assertEquals(ProxyEventType.AFTER_METHOD, afterMethodExecution.getProxyEventType());
 
         assertSame(exception, afterMethodExecution.getThrown());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void proceedExecutionWithConnectionFactoryCreateMethod() throws Throwable {
+
+        // target method returns Producer
+        Method createMethod = ReflectionUtils.findMethod(ConnectionFactory.class, "create");
+        ConnectionFactory target = mock(ConnectionFactory.class);
+        Object[] args = new Object[]{};
+        LastExecutionAwareListener listener = new LastExecutionAwareListener();
+        String connectionId = "conn-id";
+
+        // produce single result in order to trigger StepVerifier#assertNext.
+        Connection mockConnection = mock(Connection.class);
+        Publisher<? extends Connection> publisher = Mono.just(mockConnection);
+        doReturn(publisher).when(target).create();
+
+        ConnectionIdManager connectionIdManager = mock(ConnectionIdManager.class);
+        when(connectionIdManager.getId(mockConnection)).thenReturn(connectionId);
+        when(this.proxyConfig.getConnectionIdManager()).thenReturn(connectionIdManager);
+
+
+        Object result = this.callbackSupport.proceedExecution(createMethod, target, args, listener, null);
+
+        // verify method on target is invoked
+        verify(target).create();
+
+        StepVerifier.create((Publisher<Tuple2<Connection, String>>) result)
+                .expectSubscription()
+                .assertNext(tuple2 -> {
+                    // in middle of chain.
+                    // at this point, beforeMethod has already called and special logic for
+                    // "ConnectionFactory#create" has performed.
+                    assertSame(mockConnection, tuple2.getT1());
+                    assertEquals(connectionId, tuple2.getT2());
+
+                    MethodExecutionInfo beforeMethod = listener.getBeforeMethodExecutionInfo();
+                    assertNotNull(beforeMethod);
+                    assertNull(listener.getAfterMethodExecutionInfo());
+
+                    assertEquals(ProxyEventType.BEFORE_METHOD, beforeMethod.getProxyEventType());
+                })
+                .expectComplete()
+                .verify();
+
+        MethodExecutionInfo afterMethodExecution = listener.getAfterMethodExecutionInfo();
+        assertEquals(connectionId, afterMethodExecution.getConnectionId());
+        assertSame(target, afterMethodExecution.getTarget());
+        assertSame(mockConnection, afterMethodExecution.getResult());
+
     }
 
 }

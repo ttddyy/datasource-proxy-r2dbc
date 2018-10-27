@@ -29,6 +29,11 @@ public class ProxyConfig {
         return proxyFactory;
     }
 
+    public void setProxyFactory(ProxyFactory proxyFactory) {
+        this.proxyFactory = proxyFactory;
+        this.proxyFactory.setProxyConfig(this);
+    }
+
     public CompositeProxyExecutionListener getListeners() {
         return this.listeners;
     }

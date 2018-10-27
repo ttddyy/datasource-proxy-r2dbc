@@ -14,13 +14,12 @@ import java.lang.reflect.Method;
 public class ReactiveConnectionCallback extends CallbackSupport {
 
     private Connection connection;
-    private ProxyConfig proxyConfig;
     private String connectionId;
 
     public ReactiveConnectionCallback(Connection connection, String connectionId, ProxyConfig proxyConfig) {
+        super(proxyConfig);
         this.connection = connection;
         this.connectionId = connectionId;
-        this.proxyConfig = proxyConfig;
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

@@ -14,11 +14,9 @@ import java.util.List;
  */
 public class QueryExecutionInfo {
 
-    private String dataSourceName = "";
     private String connectionId = "";
     private Method method;
     private Object[] methodArgs;
-    private Object result;
     private Throwable throwable;
     private boolean isSuccess;
     private int batchSize;  // num of Batch#add
@@ -48,34 +46,12 @@ public class QueryExecutionInfo {
         this.methodArgs = methodArgs;
     }
 
-    public String getDataSourceName() {
-        return dataSourceName;
-    }
-
-    public void setDataSourceName(String dataSourceName) {
-        this.dataSourceName = dataSourceName;
-    }
-
     public String getConnectionId() {
         return connectionId;
     }
 
     public void setConnectionId(String connectionId) {
         this.connectionId = connectionId;
-    }
-
-    /**
-     * Contains query execution result.
-     * Only available after successful query execution.
-     *
-     * @return result of query
-     */
-    public Object getResult() {
-        return result;
-    }
-
-    public void setResult(Object result) {
-        this.result = result;
     }
 
     public Throwable getThrowable() {

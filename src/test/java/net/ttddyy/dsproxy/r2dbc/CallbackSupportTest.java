@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -411,6 +412,42 @@ public class CallbackSupportTest {
         assertSame(target, afterMethodExecution.getTarget());
         assertSame(mockConnection, afterMethodExecution.getResult());
 
+    }
+
+    @Test
+    void proceedExecutionWithToString_HashCode_Equals_Methods() throws Throwable {
+
+        class MyStub {
+            @Override
+            public String toString() {
+                return "FOO";
+            }
+        }
+
+        // target method returns Producer
+        Method toStringMethod = ReflectionUtils.findMethod(Object.class, "toString");
+        Method hashCodeMethod = ReflectionUtils.findMethod(Object.class, "hashCode");
+        Method equalsMethod = ReflectionUtils.findMethod(Object.class, "equals", Object.class);
+        MyStub target = new MyStub();
+        LastExecutionAwareListener listener = new LastExecutionAwareListener();
+
+        Object result;
+
+        // verify toString()
+        result = this.callbackSupport.proceedExecution(toStringMethod, target, null, listener, null);
+        assertEquals("MyStub-proxy [FOO]", result);
+
+        // verify hashCode()
+        result = this.callbackSupport.proceedExecution(hashCodeMethod, target, null, listener, null);
+        assertEquals(target.hashCode(), result);
+
+        // verify equals() with null
+        result = this.callbackSupport.proceedExecution(equalsMethod, target, new Object[]{null}, listener, null);
+        assertThat(result).isEqualTo(false);
+
+        // verify equals() with target
+        result = this.callbackSupport.proceedExecution(equalsMethod, target, new Object[]{target}, listener, null);
+        assertThat(result).isEqualTo(true);
     }
 
 }

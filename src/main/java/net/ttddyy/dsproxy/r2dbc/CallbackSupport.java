@@ -16,7 +16,11 @@ import java.lang.reflect.Method;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Tadaya Tsuyukubo
@@ -24,10 +28,17 @@ import java.util.concurrent.atomic.AtomicReference;
 public abstract class CallbackSupport {
 
     private static final Method CONNECTION_FACTORY_CREATE_METHOD;
+    private static final Set<Method> PASS_THROUGH_METHODS;
 
     static {
         try {
             CONNECTION_FACTORY_CREATE_METHOD = ConnectionFactory.class.getMethod("create");
+
+            Method objectToStringMethod = Object.class.getMethod("toString");
+            PASS_THROUGH_METHODS = Arrays.stream(Object.class.getMethods())
+                    .filter(method -> !objectToStringMethod.equals(method))
+                    .collect(toSet());
+
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -47,6 +58,26 @@ public abstract class CallbackSupport {
      */
     protected Object proceedExecution(Method method, Object target, Object[] args,
                                       ProxyExecutionListener listener, String connectionId) throws Throwable {
+
+        if (PASS_THROUGH_METHODS.contains(method)) {
+            try {
+                return method.invoke(target, args);
+            } catch (InvocationTargetException ex) {
+                throw ex.getTargetException();
+            }
+        }
+
+        // special handling for toString()
+        if ("toString".equals(method.getName())) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(target.getClass().getSimpleName());   // ConnectionFactory, Connection, Batch, or Statement
+            sb.append("-proxy [");
+            sb.append(target.toString());
+            sb.append("]");
+            return sb.toString(); // differentiate toString message.
+        }
+
+
         AtomicReference<Instant> startTimeHolder = new AtomicReference<>();
 
         MethodExecutionInfo executionInfo = new MethodExecutionInfo();

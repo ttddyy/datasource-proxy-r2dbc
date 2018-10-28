@@ -8,7 +8,7 @@ Provide listeners that receive callbacks of query executions and method invocati
 
 Callbacks are:
 - before/after query executions when `Batch#execute()` or `Statement#execute()` is called.
-- before/after any method calls on `Connection`, `Batch` and `Statement` 
+- before/after any method calls on `ConnectionFactory`, `Connection`, `Batch` and `Statement` 
 
 Here is sample use cases for listeners:
 - Query logging
@@ -70,7 +70,7 @@ It is currently in plan to port [`SlowQueryListener` from datasource-proxy](http
 
 ### Method tracing
 
-When any methods on `Connection`, `Batch`, or `Statement` are called,
+When any methods on `ConnectionFactory`, `Connection`, `Batch`, or `Statement` are called,
 listeners receive callbacks on before and after invocations.
 
 Below output simply printed out the method execution information(`MethodExecutionInfo`)
@@ -82,13 +82,14 @@ connection open/close.
 
 *Sample: Execution with transaction (see [sample](#sample)):*
 ```sql
-  1: Thread:0 Connection:1 Time:3  PostgresqlConnection#createStatement()
-  2: Thread:0 Connection:1 Time:4  ExtendedQueryPostgresqlStatement#bind()
-  3: Thread:0 Connection:1 Time:0  ExtendedQueryPostgresqlStatement#add()
-  4: Thread:30 Connection:1 Time:13  PostgresqlConnection#beginTransaction()
-  5: Thread:30 Connection:1 Time:34  ExtendedQueryPostgresqlStatement#execute()
-  6: Thread:30 Connection:1 Time:6  PostgresqlConnection#commitTransaction()
-  7: Thread:30 Connection:1 Time:6  PostgresqlConnection#close()
+  1: Thread:34 Connection:1 Time:16  PostgresqlConnectionFactory#create()
+  2: Thread:34 Connection:1 Time:0  PostgresqlConnection#createStatement()
+  3: Thread:34 Connection:1 Time:0  ExtendedQueryPostgresqlStatement#bind()
+  4: Thread:34 Connection:1 Time:0  ExtendedQueryPostgresqlStatement#add()
+  5: Thread:34 Connection:1 Time:5  PostgresqlConnection#beginTransaction()
+  6: Thread:34 Connection:1 Time:5  ExtendedQueryPostgresqlStatement#execute()
+  7: Thread:34 Connection:1 Time:3  PostgresqlConnection#commitTransaction()
+  8: Thread:34 Connection:1 Time:4  PostgresqlConnection#close()
 ```
 
 
@@ -139,16 +140,16 @@ void afterQuery(QueryExecutionInfo execInfo);
 `MethodExecutionInfo` and `QueryExecutionInfo` contains contextual information about the
 method/query execution.
 
-Any method calls on proxied `Connection`, `Batch`, and `Statement`
-triggers method callbacks - `beforeMethod()` and `afterMethod()`
+Any method calls on proxied `ConnectionFactory`, `Connection`, `Batch`, and `Statement`
+triggers method callbacks - `beforeMethod()` and `afterMethod()`.
 `Batch#execute()` and `Statement#execute()` triggers query callbacks - `beforeQuery()`
-and `afterQuery`
+and `afterQuery`.
 
 ----
 
 # Setup
 
-Wrap original `ConnectionFactory` by `ProxyConnectionFactory` and pass it to R2DBC client.
+Use `ProxyConnectionFactoryBuilder` to create a proxied `ConnectionFactory` and pass it to R2DBC client. 
 
 ```java
 // original connection factory
@@ -156,13 +157,14 @@ ConnectionFactory connectionFactory = new PostgresqlConnectionFactory(configurat
 
 // create proxied connection factory
 ConnectionFactory proxyConnectionFactory =
-  ProxyConnectionFactory.create(connectionFactory)  // wrap original ConnectionFactory
+  ProxyConnectionFactoryBuilder.create(connectionFactory)  // pass original ConnectionFactory
     .onAfterMethod(mono -> {
       ...   // callback after method execution
     })  
     .onAfterQuery(mono -> {
       ...  //  callback after query execution
-    });
+    })
+    .build();
 
 // initialize client with the wrappd connection factory
 R2dbc client = new R2dbc(proxyConnectionFactory);
@@ -204,12 +206,13 @@ out of the box to generate log statements.
 QueryExecutionInfoFormatter queryExecutionFormatter = QueryExecutionInfoFormatter.showAll();
 
 ConnectionFactory proxyConnectionFactory =
-  ProxyConnectionFactory.create(connectionFactory)  // wrap original ConnectionFactory
+  ProxyConnectionFactoryBuilder.create(connectionFactory)  // wrap original ConnectionFactory
     // on every query execution
     .onAfterQuery(execInfo ->
       execInfo.map(queryExecutionFormatter::format)
               .doOnNext(System.out::println)       // print out executed query
-              .subscribe());
+              .subscribe())
+    .build();
 ```
 
 ## Slow query detection
@@ -223,13 +226,14 @@ time, then perform any action.
 Duration threashold = Duration.of(...);
 
 ConnectionFactory proxyConnectionFactory =
-  ProxyConnectionFactory.create(connectionFactory)
+  ProxyConnectionFactoryBuilder.create(connectionFactory)
     .onAfterQuery(mono -> mono
        .filter(execInfo -> threashold.minus(execInfo.getExecuteDuration()).isNegative())
        .doOnNext(execInfo -> {
          // slow query logic
        })
-       .subscribe());
+       .subscribe())
+    .build();
 ```
 
 ### Detect slow query WHILE query is executing
@@ -248,12 +252,13 @@ create a span, or update metrics.
 MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
 ConnectionFactory proxyConnectionFactory =
-  ProxyConnectionFactory.create(connectionFactory)  // wrap original ConnectionFactory
+  ProxyConnectionFactoryBuilder.create(connectionFactory)  // wrap original ConnectionFactory
     // on every method invocation
     .onAfterMethod(execInfo ->  
       execInfo.map(methodExecutionFormatter::format)
               .doOnNext(System.out::println)        // print out method execution (method tracing)
               .subscribe())
+    .build();
 ```
 
 ----
@@ -276,7 +281,7 @@ QueryExecutionInfoFormatter queryExecutionFormatter = QueryExecutionInfoFormatte
 MethodExecutionInfoFormatter methodExecutionFormatter = MethodExecutionInfoFormatter.withDefault();
 
 ConnectionFactory proxyConnectionFactory =
-  ProxyConnectionFactory.create(connectionFactory)  // wrap original ConnectionFactory
+  ProxyConnectionFactoryBuilder.create(connectionFactory)  // wrap original ConnectionFactory
     // on every method invocation
     .onAfterMethod(execInfo ->  
       execInfo.map(methodExecutionFormatter::format)
@@ -286,7 +291,8 @@ ConnectionFactory proxyConnectionFactory =
     .onAfterQuery(execInfo ->
       execInfo.map(queryExecutionFormatter::format)
               .doOnNext(System.out::println)       // print out executed query
-              .subscribe());
+              .subscribe())
+    .build();
 
 // pass the proxied ConnectionFactory to client
 this.r2dbc = new R2dbc(proxyConnectionFactory);
@@ -294,13 +300,14 @@ this.r2dbc = new R2dbc(proxyConnectionFactory);
 
 Method tracing output:
 ```sql
-  1: Thread:0 Connection:1 Time:3  PostgresqlConnection#createStatement()
-  2: Thread:0 Connection:1 Time:4  ExtendedQueryPostgresqlStatement#bind()
-  3: Thread:0 Connection:1 Time:0  ExtendedQueryPostgresqlStatement#add()
-  4: Thread:30 Connection:1 Time:13  PostgresqlConnection#beginTransaction()
-  5: Thread:30 Connection:1 Time:34  ExtendedQueryPostgresqlStatement#execute()
-  6: Thread:30 Connection:1 Time:6  PostgresqlConnection#commitTransaction()
-  7: Thread:30 Connection:1 Time:6  PostgresqlConnection#close()
+  1: Thread:34 Connection:1 Time:16  PostgresqlConnectionFactory#create()
+  2: Thread:34 Connection:1 Time:0  PostgresqlConnection#createStatement()
+  3: Thread:34 Connection:1 Time:0  ExtendedQueryPostgresqlStatement#bind()
+  4: Thread:34 Connection:1 Time:0  ExtendedQueryPostgresqlStatement#add()
+  5: Thread:34 Connection:1 Time:5  PostgresqlConnection#beginTransaction()
+  6: Thread:34 Connection:1 Time:5  ExtendedQueryPostgresqlStatement#execute()
+  7: Thread:34 Connection:1 Time:3  PostgresqlConnection#commitTransaction()
+  8: Thread:34 Connection:1 Time:4  PostgresqlConnection#close()
 ```
 
 Query output: (wrapped for display)

@@ -24,11 +24,12 @@ public class MethodExecutionInfoFormatter implements Function<MethodExecutionInf
     // Default consumer to format the MethodExecutionInfo
     private BiConsumer<MethodExecutionInfo, StringBuilder> defaultConsumer = (executionInfo, sb) -> {
         long seq = this.sequenceNumber.getAndIncrement();
-        String connectionId = executionInfo.getConnectionId();
         long executionTime = executionInfo.getExecuteDuration().toMillis();
         String targetClass = executionInfo.getTarget().getClass().getSimpleName();
         String methodName = executionInfo.getMethod().getName();
         long threadId = executionInfo.getThreadId();
+
+        String connectionId = executionInfo.getConnectionId() == null ? "n/a" : executionInfo.getConnectionId();
 
         sb.append(String.format("%3d: Thread:%d Connection:%s Time:%d  %s#%s()",
                 seq, threadId, connectionId, executionTime, targetClass, methodName));

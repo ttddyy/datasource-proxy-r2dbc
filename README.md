@@ -7,8 +7,9 @@
 Provide listeners that receive callbacks of query executions and method invocations on R2DBC SPI.
 
 Callbacks are:
-- before/after query executions when `Batch#execute()` or `Statement#execute()` is called.
-- before/after any method calls on `ConnectionFactory`, `Connection`, `Batch` and `Statement` 
+- Before/After query executions when `Batch#execute()` or `Statement#execute()` is called.
+- Each query result emitted by `Publisher<? extends Result>`.
+- Before/After any method calls on `ConnectionFactory`, `Connection`, `Batch` and `Statement`. 
 
 Here is sample use cases for listeners:
 - Query logging
@@ -132,6 +133,8 @@ void beforeMethod(MethodExecutionInfo executionInfo);
 
 void afterMethod(MethodExecutionInfo executionInfo);
 
+void eachQueryResult(QueryExecutionInfo execInfo);
+
 void beforeQuery(QueryExecutionInfo execInfo);
 
 void afterQuery(QueryExecutionInfo execInfo);
@@ -143,7 +146,8 @@ method/query execution.
 Any method calls on proxied `ConnectionFactory`, `Connection`, `Batch`, and `Statement`
 triggers method callbacks - `beforeMethod()` and `afterMethod()`.
 `Batch#execute()` and `Statement#execute()` triggers query callbacks - `beforeQuery()`
-and `afterQuery`.
+and `afterQuery()`.(Specifically when returned result publisher is subscribed.)  
+`eachQueryResult()` is called on each query result while being subscribed.
 
 ----
 

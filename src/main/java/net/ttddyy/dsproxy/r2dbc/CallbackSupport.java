@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.stream.Collectors.toSet;
@@ -200,7 +201,8 @@ public abstract class CallbackSupport {
 
         AtomicReference<Instant> startTimeHolder = new AtomicReference<>();
 
-        // TODO: think about interceptor for doOnNext() -- each query execution
+        AtomicInteger resultCount = new AtomicInteger(0);
+
         return Flux.empty()
                 .ofType(Result.class)
                 .doOnSubscribe(s -> {
@@ -213,13 +215,36 @@ public abstract class CallbackSupport {
                     executionInfo.setThreadName(threadName);
                     executionInfo.setThreadId(threadId);
 
+                    executionInfo.setCurrentResult(null);
+
                     executionInfo.setProxyEventType(ProxyEventType.BEFORE_QUERY);
 
                     listener.onQueryExecution(executionInfo);
                 })
                 .concatWith(flux)
                 .doOnNext(result -> {
-                    // TODO: add listener callback for each query result
+                    // on each query result
+
+                    Instant startTime = startTimeHolder.get();
+                    Instant currentTime = this.clock.instant();
+
+                    Duration executionDuration = Duration.between(startTime, currentTime);
+                    executionInfo.setExecuteDuration(executionDuration);
+
+                    String threadName = Thread.currentThread().getName();
+                    long threadId = Thread.currentThread().getId();
+                    executionInfo.setThreadName(threadName);
+                    executionInfo.setThreadId(threadId);
+
+                    executionInfo.setProxyEventType(ProxyEventType.EACH_QUERY_RESULT);
+
+                    executionInfo.setCurrentResult(result);
+
+                    int count = resultCount.incrementAndGet();
+                    executionInfo.setCurrentResultCount(count);
+
+                    listener.eachQueryResult(executionInfo);
+
                 })
                 .doOnComplete(() -> {
                     executionInfo.setSuccess(true);
@@ -240,6 +265,8 @@ public abstract class CallbackSupport {
                     long threadId = Thread.currentThread().getId();
                     executionInfo.setThreadName(threadName);
                     executionInfo.setThreadId(threadId);
+
+                    executionInfo.setCurrentResult(null);
 
                     executionInfo.setProxyEventType(ProxyEventType.AFTER_QUERY);
 

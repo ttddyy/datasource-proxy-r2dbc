@@ -11,6 +11,7 @@ public class LastExecutionAwareListener implements ProxyExecutionListener {
 
     private QueryExecutionInfo beforeQueryExecutionInfo;
     private QueryExecutionInfo afterQueryExecutionInfo;
+    private QueryExecutionInfo eachQueryResultExecutionInfo;
     private MethodExecutionInfo beforeMethodExecutionInfo;
     private MethodExecutionInfo afterMethodExecutionInfo;
 
@@ -22,6 +23,11 @@ public class LastExecutionAwareListener implements ProxyExecutionListener {
     @Override
     public void afterQuery(QueryExecutionInfo execInfo) {
         this.afterQueryExecutionInfo = execInfo;
+    }
+
+    @Override
+    public void eachQueryResult(QueryExecutionInfo execInfo) {
+        this.eachQueryResultExecutionInfo = execInfo;
     }
 
     @Override
@@ -40,6 +46,10 @@ public class LastExecutionAwareListener implements ProxyExecutionListener {
 
     public QueryExecutionInfo getAfterQueryExecutionInfo() {
         return afterQueryExecutionInfo;
+    }
+
+    public QueryExecutionInfo getEachQueryResultExecutionInfo() {
+        return eachQueryResultExecutionInfo;
     }
 
     public MethodExecutionInfo getBeforeMethodExecutionInfo() {

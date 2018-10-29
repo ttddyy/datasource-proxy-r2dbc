@@ -1,5 +1,7 @@
 package net.ttddyy.dsproxy.r2dbc.core;
 
+import io.r2dbc.spi.Result;
+
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -27,6 +29,8 @@ public class QueryExecutionInfo {
     private String threadName = "";
     private long threadId;
     private ProxyEventType proxyEventType;
+    private int currentResultCount;
+    private Result currentResult;
 
     private List<QueryInfo> queries = new ArrayList<>();
 
@@ -149,5 +153,42 @@ public class QueryExecutionInfo {
 
     public void setProxyEventType(ProxyEventType proxyEventType) {
         this.proxyEventType = proxyEventType;
+    }
+
+    /**
+     * Represent Nth {@link io.r2dbc.spi.Result}.
+     *
+     * On each query result callback({@link ProxyExecutionListener#eachQueryResult(QueryExecutionInfo)}),
+     * this value indicates Nth {@link Result} starting from 1.
+     * (1st query result, 2nd query result, 3rd, 4th,...).
+     *
+     * This returns 0 for before query execution({@link ProxyExecutionListener#beforeQuery(QueryExecutionInfo)}).
+     * For after query execution({@link ProxyExecutionListener#afterQuery(QueryExecutionInfo)}), this returns
+     * total number of {@link io.r2dbc.spi.Result} returned by this query execution.
+     *
+     * @return Nth number of query result
+     */
+    public int getCurrentResultCount() {
+        return currentResultCount;
+    }
+
+    public void setCurrentResultCount(int currentResultCount) {
+        this.currentResultCount = currentResultCount;
+    }
+
+    /**
+     * Current query {@link Result} available for each-query-result-callback({@link ProxyExecutionListener#eachQueryResult(QueryExecutionInfo)}).
+     *
+     * For before and after query execution({@link ProxyExecutionListener#beforeQuery(QueryExecutionInfo)}
+     * and {@link ProxyExecutionListener#afterQuery(QueryExecutionInfo)), this returns {@code null}.
+     *
+     * @return
+     */
+    public Result getCurrentResult() {
+        return currentResult;
+    }
+
+    public void setCurrentResult(Result currentResult) {
+        this.currentResult = currentResult;
     }
 }

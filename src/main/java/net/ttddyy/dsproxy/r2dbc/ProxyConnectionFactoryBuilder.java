@@ -101,6 +101,16 @@ public class ProxyConnectionFactoryBuilder {
         return this;
     }
 
+    public ProxyConnectionFactoryBuilder onEachQueryResult(Consumer<Mono<QueryExecutionInfo>> consumer) {
+        this.proxyConfig.addListener(new ProxyExecutionListener() {
+            @Override
+            public void eachQueryResult(QueryExecutionInfo executionInfo) {
+                consumer.accept(Mono.just(executionInfo));
+            }
+        });
+        return this;
+    }
+
     public ProxyConnectionFactoryBuilder listener(ProxyExecutionListener listener) {
         this.proxyConfig.addListener(listener);
         return this;

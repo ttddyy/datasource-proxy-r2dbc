@@ -42,6 +42,11 @@ public class CompositeProxyExecutionListener implements ProxyExecutionListener {
         this.listeners.forEach(listener -> listener.afterQuery(execInfo));
     }
 
+    @Override
+    public void eachQueryResult(QueryExecutionInfo execInfo) {
+        this.listeners.forEach(listener -> listener.eachQueryResult(execInfo));
+    }
+
     public boolean add(ProxyExecutionListener listener) {
         return this.listeners.add(listener);
     }

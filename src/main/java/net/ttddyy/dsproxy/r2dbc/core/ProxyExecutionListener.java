@@ -48,8 +48,11 @@ public interface ProxyExecutionListener {
 
     /**
      * Called before execution of query.
-     * <p>
+     *
      * Query execution is {@link Batch#execute()} or {@link Statement#execute()}.
+     *
+     * Note: this callback is called when the publisher, result of the {@code execute()}, is being
+     * subscribed. Not at the time of {@code execute()} is called,
      *
      * @param execInfo query execution context
      */
@@ -58,12 +61,25 @@ public interface ProxyExecutionListener {
 
     /**
      * Called after execution of query.
-     * <p>
+     *
      * Query execution is {@link Batch#execute()} or {@link Statement#execute()}.
+     *
+     * Note: this callback is called when the publisher, result of the {@code execute()}, is being
+     * subscribed. Not at the time of {@code execute()} is called,
      *
      * @param execInfo query execution context
      */
     default void afterQuery(QueryExecutionInfo execInfo) {
+    }
+
+    /**
+     * Called on processing each query {@link io.r2dbc.spi.Result}.
+     *
+     * While subscribing query results, this callback is called per result.
+     *
+     * @param execInfo query execution context
+     */
+    default void eachQueryResult(QueryExecutionInfo execInfo) {
     }
 
 }

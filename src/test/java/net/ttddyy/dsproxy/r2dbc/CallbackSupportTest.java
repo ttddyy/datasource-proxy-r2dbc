@@ -61,7 +61,6 @@ public class CallbackSupportTest {
         this.callbackSupport.setClock(clock);
     }
 
-    // TODO: write test for proceedExecution() for ConnectionFactory#create()
 
     @Test
     void interceptQueryExecution() {
@@ -71,7 +70,16 @@ public class CallbackSupportTest {
 
         // produce single result in order to trigger doOnNext
         Result mockResult = mock(Result.class);
-        Mono<Result> publisher = Mono.just(mockResult);
+        Mono<Result> publisher = Mono.just(mockResult)
+                .doOnSubscribe(subscription -> {
+                    // this will be called AFTER listener.beforeQuery() but BEFORE emitting query result from this publisher.
+                    // verify BEFORE_QUERY
+                    assertEquals(ProxyEventType.BEFORE_QUERY, executionInfo.getProxyEventType());
+                    assertSame(executionInfo, listener.getBeforeQueryExecutionInfo());
+
+                    assertEquals(0, executionInfo.getCurrentResultCount());
+                    assertNull(executionInfo.getCurrentResult());
+                });
 
         Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(publisher, listener, executionInfo);
 
@@ -79,10 +87,12 @@ public class CallbackSupportTest {
         StepVerifier.create(result)
                 .expectSubscription()
                 .consumeNextWith(c -> {
-                    // in middle of chain, beforeQuery must be called
+                    // verify EACH_QUERY_RESULT
                     assertSame(mockResult, c);
-                    assertEquals(ProxyEventType.BEFORE_QUERY, executionInfo.getProxyEventType());
-                    assertSame(executionInfo, listener.getBeforeQueryExecutionInfo());
+                    assertEquals(ProxyEventType.EACH_QUERY_RESULT, executionInfo.getProxyEventType());
+                    assertSame(executionInfo, listener.getEachQueryResultExecutionInfo());
+                    assertEquals(1, executionInfo.getCurrentResultCount());
+                    assertSame(mockResult, executionInfo.getCurrentResult());
                 })
                 .expectComplete()
                 .verify();
@@ -107,6 +117,8 @@ public class CallbackSupportTest {
         assertTrue(executionInfo.isSuccess());
         assertNull(executionInfo.getThrowable());
 
+        assertEquals(1, executionInfo.getCurrentResultCount());
+        assertNull(executionInfo.getCurrentResult());
     }
 
     @Test
@@ -145,7 +157,141 @@ public class CallbackSupportTest {
         // verify failure
         assertFalse(executionInfo.isSuccess());
         assertSame(exception, executionInfo.getThrowable());
+
+        assertEquals(0, executionInfo.getCurrentResultCount());
     }
+
+    @Test
+    void interceptQueryExecutionWithMultipleResult() {
+
+        LastExecutionAwareListener listener = new LastExecutionAwareListener();
+        QueryExecutionInfo executionInfo = new QueryExecutionInfo();
+
+        // produce multiple results
+        Result mockResult1 = mock(Result.class);
+        Result mockResult2 = mock(Result.class);
+        Result mockResult3 = mock(Result.class);
+        Flux<Result> publisher = Flux.just(mockResult1, mockResult2, mockResult3)
+                .doOnSubscribe(subscription -> {
+                    // this will be called AFTER listener.beforeQuery() but BEFORE emitting query result from this publisher.
+                    // verify BEFORE_QUERY
+                    assertEquals(ProxyEventType.BEFORE_QUERY, executionInfo.getProxyEventType());
+                    assertSame(executionInfo, listener.getBeforeQueryExecutionInfo());
+
+                    assertEquals(0, executionInfo.getCurrentResultCount());
+                    assertNull(executionInfo.getCurrentResult());
+                });
+
+        Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(publisher, listener, executionInfo);
+
+        // verifies result flux
+        StepVerifier.create(result)
+                .expectSubscription()
+                .assertNext(c -> {
+                    // first result
+                    assertSame(mockResult1, c);
+                    assertEquals(ProxyEventType.EACH_QUERY_RESULT, executionInfo.getProxyEventType());
+                    assertSame(executionInfo, listener.getEachQueryResultExecutionInfo());
+                    assertSame(1, executionInfo.getCurrentResultCount());
+                    assertEquals(mockResult1, executionInfo.getCurrentResult());
+                })
+                .assertNext(c -> {
+                    // second result
+                    assertSame(mockResult2, c);
+                    assertEquals(ProxyEventType.EACH_QUERY_RESULT, executionInfo.getProxyEventType());
+                    assertSame(executionInfo, listener.getEachQueryResultExecutionInfo());
+                    assertSame(2, executionInfo.getCurrentResultCount());
+                    assertEquals(mockResult2, executionInfo.getCurrentResult());
+                })
+                .assertNext(c -> {
+                    // third result
+                    assertSame(mockResult3, c);
+                    assertEquals(ProxyEventType.EACH_QUERY_RESULT, executionInfo.getProxyEventType());
+                    assertSame(executionInfo, listener.getEachQueryResultExecutionInfo());
+                    assertSame(3, executionInfo.getCurrentResultCount());
+                    assertEquals(mockResult3, executionInfo.getCurrentResult());
+                })
+                .expectComplete()
+                .verify();
+
+
+        assertNull(listener.getBeforeMethodExecutionInfo());
+        assertNull(listener.getAfterMethodExecutionInfo());
+        assertSame(executionInfo, listener.getBeforeQueryExecutionInfo());
+        assertSame(executionInfo, listener.getAfterQueryExecutionInfo());
+
+        assertEquals(ProxyEventType.AFTER_QUERY, executionInfo.getProxyEventType());
+
+        String threadName = Thread.currentThread().getName();
+        long threadId = Thread.currentThread().getId();
+        assertEquals(threadName, executionInfo.getThreadName());
+        assertEquals(threadId, executionInfo.getThreadId());
+
+        // since it uses fixed clock that returns same time, duration is 0
+        assertEquals(Duration.ZERO, executionInfo.getExecuteDuration());
+
+        // verify success
+        assertTrue(executionInfo.isSuccess());
+        assertNull(executionInfo.getThrowable());
+
+        assertEquals(3, executionInfo.getCurrentResultCount());
+        assertNull(executionInfo.getCurrentResult());
+
+    }
+
+    @Test
+    void interceptQueryExecutionWithEmptyResult() {
+
+        LastExecutionAwareListener listener = new LastExecutionAwareListener();
+        QueryExecutionInfo executionInfo = new QueryExecutionInfo();
+
+        // produce multiple results
+        Flux<Result> publisher = Flux.<Result>empty()
+                .doOnSubscribe(subscription -> {
+                    // this will be called AFTER listener.beforeQuery() but BEFORE emitting query result from this publisher.
+                    // verify BEFORE_QUERY
+                    assertEquals(ProxyEventType.BEFORE_QUERY, executionInfo.getProxyEventType());
+                    assertSame(executionInfo, listener.getBeforeQueryExecutionInfo());
+
+                    assertEquals(0, executionInfo.getCurrentResultCount());
+                    assertNull(executionInfo.getCurrentResult());
+                });
+        ;
+
+        Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(publisher, listener, executionInfo);
+
+        // verifies result flux
+        StepVerifier.create(result)
+                .expectSubscription()
+                .expectNextCount(0)
+                .expectComplete()
+                .verify();
+
+
+        assertNull(listener.getBeforeMethodExecutionInfo());
+        assertNull(listener.getAfterMethodExecutionInfo());
+        assertSame(executionInfo, listener.getBeforeQueryExecutionInfo());
+        assertSame(executionInfo, listener.getAfterQueryExecutionInfo());
+
+        assertEquals(ProxyEventType.AFTER_QUERY, executionInfo.getProxyEventType());
+
+        String threadName = Thread.currentThread().getName();
+        long threadId = Thread.currentThread().getId();
+        assertEquals(threadName, executionInfo.getThreadName());
+        assertEquals(threadId, executionInfo.getThreadId());
+
+        // since it uses fixed clock that returns same time, duration is 0
+        assertEquals(Duration.ZERO, executionInfo.getExecuteDuration());
+
+        // verify success
+        assertTrue(executionInfo.isSuccess());
+        assertNull(executionInfo.getThrowable());
+
+        assertEquals(0, executionInfo.getCurrentResultCount());
+        assertNull(executionInfo.getCurrentResult());
+
+    }
+
 
     @SuppressWarnings("unchecked")
     @Test

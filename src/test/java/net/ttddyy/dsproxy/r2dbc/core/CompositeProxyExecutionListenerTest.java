@@ -117,5 +117,18 @@ public class CompositeProxyExecutionListenerTest {
 
     }
 
+    @Test
+    void eachQueryResult() {
+
+        QueryExecutionInfo executionInfo = new QueryExecutionInfo();
+        executionInfo.setProxyEventType(ProxyEventType.EACH_QUERY_RESULT);
+
+        this.compositeListener.eachQueryResult(executionInfo);
+
+        assertSame(executionInfo, this.listener1.getEachQueryResultExecutionInfo());
+        assertSame(executionInfo, this.listener2.getEachQueryResultExecutionInfo());
+
+    }
+
 
 }

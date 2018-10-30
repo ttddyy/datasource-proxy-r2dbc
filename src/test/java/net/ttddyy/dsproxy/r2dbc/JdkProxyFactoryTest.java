@@ -4,6 +4,7 @@ import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +33,7 @@ public class JdkProxyFactoryTest {
         Connection connection = mock(Connection.class);
         Batch batch = mock(Batch.class);
         Statement statement = mock(Statement.class);
-        String connectionId = "foo";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
         String query = "query";
 
         Object result;
@@ -40,13 +41,13 @@ public class JdkProxyFactoryTest {
         result = this.proxyFactory.createConnectionFactory(connectionFactory);
         assertTrue(Proxy.isProxyClass(result.getClass()));
 
-        result = this.proxyFactory.createConnection(connection, connectionId);
+        result = this.proxyFactory.createConnection(connection, connectionInfo);
         assertTrue(Proxy.isProxyClass(result.getClass()));
 
-        result = this.proxyFactory.createBatch(batch, connectionId);
+        result = this.proxyFactory.createBatch(batch, connectionInfo);
         assertTrue(Proxy.isProxyClass(result.getClass()));
 
-        result = this.proxyFactory.createStatement(statement, query, connectionId);
+        result = this.proxyFactory.createStatement(statement, query, connectionInfo);
         assertTrue(Proxy.isProxyClass(result.getClass()));
     }
 
@@ -56,7 +57,7 @@ public class JdkProxyFactoryTest {
         Connection connection = mock(Connection.class);
         Batch batch = mock(Batch.class);
         Statement statement = mock(Statement.class);
-        String connectionId = "foo";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
         String query = "query";
 
         String expected;
@@ -66,15 +67,15 @@ public class JdkProxyFactoryTest {
         expected = getExpectedToString(connectionFactory);
         assertEquals(expected, result.toString());
 
-        result = this.proxyFactory.createConnection(connection, connectionId);
+        result = this.proxyFactory.createConnection(connection, connectionInfo);
         expected = getExpectedToString(connection);
         assertEquals(expected, result.toString());
 
-        result = this.proxyFactory.createBatch(batch, connectionId);
+        result = this.proxyFactory.createBatch(batch, connectionInfo);
         expected = getExpectedToString(batch);
         assertEquals(expected, result.toString());
 
-        result = this.proxyFactory.createStatement(statement, query, connectionId);
+        result = this.proxyFactory.createStatement(statement, query, connectionInfo);
         expected = getExpectedToString(statement);
         assertEquals(expected, result.toString());
 

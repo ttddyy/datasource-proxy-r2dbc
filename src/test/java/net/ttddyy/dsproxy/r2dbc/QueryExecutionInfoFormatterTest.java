@@ -1,6 +1,7 @@
 package net.ttddyy.dsproxy.r2dbc;
 
 import net.ttddyy.dsproxy.r2dbc.core.Bindings;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
@@ -25,11 +26,14 @@ public class QueryExecutionInfoFormatterTest {
     @Test
     void batchExecution() {
 
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        connectionInfo.setConnectionId("conn-id");
+
         // Batch Query
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setThreadName("my-thread");
         execInfo.setThreadId(99);
-        execInfo.setConnectionId("conn-id");
+        execInfo.setConnectionInfo(connectionInfo);
         execInfo.setSuccess(true);
         execInfo.setExecuteDuration(Duration.of(35, ChronoUnit.MILLIS));
         execInfo.setType(ExecutionType.BATCH);
@@ -77,11 +81,14 @@ public class QueryExecutionInfoFormatterTest {
         queryWithIndexBindings.getBindingsList().addAll(Arrays.asList(indexBindings1, indexBindings2));
         queryWithIdBindings.getBindingsList().addAll(Arrays.asList(idBindings1, idBindings2));
 
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        connectionInfo.setConnectionId("conn-id");
+
         // Statement Query
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setThreadName("my-thread");
         execInfo.setThreadId(99);
-        execInfo.setConnectionId("conn-id");
+        execInfo.setConnectionInfo(connectionInfo);
         execInfo.setSuccess(true);
         execInfo.setExecuteDuration(Duration.of(35, ChronoUnit.MILLIS));
         execInfo.setType(ExecutionType.STATEMENT);
@@ -134,8 +141,11 @@ public class QueryExecutionInfoFormatterTest {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_CONNECTION);
 
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        connectionInfo.setConnectionId("99");
+
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
-        execInfo.setConnectionId("99");
+        execInfo.setConnectionInfo(connectionInfo);
 
         String str = formatter.format(execInfo);
         assertEquals("Connection:99", str);
@@ -342,7 +352,12 @@ public class QueryExecutionInfoFormatterTest {
     @Test
     void showAll() {
         QueryExecutionInfoFormatter formatter = QueryExecutionInfoFormatter.showAll();
-        String result = formatter.format(new QueryExecutionInfo());
+
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        QueryExecutionInfo queryExecutionInfo = new QueryExecutionInfo();
+        queryExecutionInfo.setConnectionInfo(connectionInfo);
+
+        String result = formatter.format(queryExecutionInfo);
         assertThat(result)
                 .containsSubsequence("Thread", "Connection", "Success", "Time", "Type", "BatchSize",
                         "BindingsSize", "Query", "Bindings");
@@ -376,14 +391,25 @@ public class QueryExecutionInfoFormatterTest {
     void showConnection() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showConnection();
-        String result = formatter.format(new QueryExecutionInfo());
-        assertEquals("Connection:", result);
+
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        connectionInfo.setConnectionId("my-connection");
+        QueryExecutionInfo queryExecutionInfo = new QueryExecutionInfo();
+        queryExecutionInfo.setConnectionInfo(connectionInfo);
+
+        String result = formatter.format(queryExecutionInfo);
+        assertEquals("Connection:my-connection", result);
     }
 
     @Test
     void showConnectionWithConsumer() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showConnection(((executionInfo, sb) -> sb.append("my-connection")));
+
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        QueryExecutionInfo queryExecutionInfo = new QueryExecutionInfo();
+        queryExecutionInfo.setConnectionInfo(connectionInfo);
+
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-connection", result);
     }

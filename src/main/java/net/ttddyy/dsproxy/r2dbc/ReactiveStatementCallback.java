@@ -6,6 +6,7 @@ import net.ttddyy.dsproxy.r2dbc.core.BindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue.NullBindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue.SimpleBindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.Bindings;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
@@ -27,23 +28,23 @@ public class ReactiveStatementCallback extends CallbackSupport {
 
     private Statement<?> statement;
 
-    private String connectionId;
+    private ConnectionInfo connectionInfo;
     private String query;
 
     private List<Bindings> bindings = new ArrayList<>();
     private int currentBindingsIndex = 0;
 
-    public ReactiveStatementCallback(Statement<?> statement, String query, String connectionId, ProxyConfig proxyConfig) {
+    public ReactiveStatementCallback(Statement<?> statement, String query, ConnectionInfo connectionInfo, ProxyConfig proxyConfig) {
         super(proxyConfig);
         this.statement = statement;
         this.query = query;
-        this.connectionId = connectionId;
+        this.connectionInfo = connectionInfo;
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
         String methodName = method.getName();
-        Object result = proceedExecution(method, this.statement, args, this.proxyConfig.getListeners(), this.connectionId);
+        Object result = proceedExecution(method, this.statement, args, this.proxyConfig.getListeners(), this.connectionInfo);
 
         // add, bind, bindNull, execute
         if ("add".equals(methodName)) {
@@ -80,7 +81,7 @@ public class ReactiveStatementCallback extends CallbackSupport {
             execInfo.setBindingsSize(this.bindings.size());
             execInfo.setMethod(method);
             execInfo.setMethodArgs(args);
-            execInfo.setConnectionId(this.connectionId);
+            execInfo.setConnectionInfo(this.connectionInfo);
 
             // API defines "execute()" returns a publisher
             Publisher<? extends Result> publisher = (Publisher<? extends Result>) result;

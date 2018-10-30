@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class QueryExecutionInfo {
 
-    private String connectionId = "";
+    private ConnectionInfo connectionInfo;
     private Method method;
     private Object[] methodArgs;
     private Throwable throwable;
@@ -50,12 +50,12 @@ public class QueryExecutionInfo {
         this.methodArgs = methodArgs;
     }
 
-    public String getConnectionId() {
-        return connectionId;
+    public ConnectionInfo getConnectionInfo() {
+        return this.connectionInfo;
     }
 
-    public void setConnectionId(String connectionId) {
-        this.connectionId = connectionId;
+    public void setConnectionInfo(ConnectionInfo connectionInfo) {
+        this.connectionInfo = connectionInfo;
     }
 
     public Throwable getThrowable() {

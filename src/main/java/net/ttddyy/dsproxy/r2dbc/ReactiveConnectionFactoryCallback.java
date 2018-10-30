@@ -2,6 +2,7 @@ package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -37,8 +38,8 @@ public class ReactiveConnectionFactoryCallback extends CallbackSupport {
                     .map(resultTuple -> {
                         Tuple2 t2 = ((Tuple2) resultTuple);
                         Connection connection = (Connection) t2.getT1();
-                        String connectionId = (String) t2.getT2();
-                        return proxyConfig.getProxyFactory().createConnection(connection, connectionId);
+                        ConnectionInfo connectionInfo = (ConnectionInfo) t2.getT2();
+                        return proxyConfig.getProxyFactory().createConnection(connection, connectionInfo);
                     });
         }
 

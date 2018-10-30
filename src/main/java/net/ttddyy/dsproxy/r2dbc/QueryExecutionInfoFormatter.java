@@ -34,7 +34,7 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
 
     public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_CONNECTION = (executionInfo, sb) -> {
         sb.append("Connection:");
-        sb.append(executionInfo.getConnectionId());
+        sb.append(executionInfo.getConnectionInfo().getConnectionId());
     };
 
     public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_SUCCESS = (executionInfo, sb) -> {

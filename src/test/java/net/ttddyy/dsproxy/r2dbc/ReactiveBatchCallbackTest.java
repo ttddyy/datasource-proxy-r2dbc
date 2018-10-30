@@ -2,6 +2,7 @@ package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Result;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
@@ -30,11 +31,11 @@ public class ReactiveBatchCallbackTest {
     void batchOperation() throws Throwable {
         LastExecutionAwareListener testListener = new LastExecutionAwareListener();
 
-        String connectionId = "100";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
         ProxyConfig proxyConfig = new ProxyConfig();
         proxyConfig.addListener(testListener);
         Batch batch = mock(Batch.class);
-        ReactiveBatchCallback callback = new ReactiveBatchCallback(batch, connectionId, proxyConfig);
+        ReactiveBatchCallback callback = new ReactiveBatchCallback(batch, connectionInfo, proxyConfig);
 
         // mock batch execution
         when(batch.execute()).thenReturn(Flux.empty());
@@ -59,7 +60,7 @@ public class ReactiveBatchCallbackTest {
         assertThat(beforeQueryInfo.getBindingsSize()).isEqualTo(0);
         assertThat(beforeQueryInfo.isSuccess()).isTrue();
         assertThat(beforeQueryInfo.getType()).isEqualTo(ExecutionType.BATCH);
-        assertThat(beforeQueryInfo.getConnectionId()).isEqualTo(connectionId);
+        assertThat(beforeQueryInfo.getConnectionInfo()).isSameAs(connectionInfo);
         assertThat(beforeQueryInfo.getQueries())
                 .extracting(QueryInfo::getQuery)
                 .containsExactly("QUERY-1", "QUERY-2");
@@ -69,7 +70,7 @@ public class ReactiveBatchCallbackTest {
         assertThat(afterQueryInfo.getBindingsSize()).isEqualTo(0);
         assertThat(afterQueryInfo.isSuccess()).isTrue();
         assertThat(afterQueryInfo.getType()).isEqualTo(ExecutionType.BATCH);
-        assertThat(afterQueryInfo.getConnectionId()).isEqualTo(connectionId);
+        assertThat(afterQueryInfo.getConnectionInfo()).isSameAs(connectionInfo);
         assertThat(afterQueryInfo.getQueries())
                 .extracting(QueryInfo::getQuery)
                 .containsExactly("QUERY-1", "QUERY-2");

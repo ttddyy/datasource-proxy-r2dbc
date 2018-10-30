@@ -1,6 +1,7 @@
 package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.ConnectionFactory;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.ReflectionUtils;
@@ -24,9 +25,12 @@ public class MethodExecutionInfoFormatterTest {
 
         Long target = 100L;
 
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        connectionInfo.setConnectionId("ABC");
+
         MethodExecutionInfo executionInfo = new MethodExecutionInfo();
         executionInfo.setThreadId(5);
-        executionInfo.setConnectionId("ABC");
+        executionInfo.setConnectionInfo(connectionInfo);
         executionInfo.setExecuteDuration(Duration.of(23, ChronoUnit.MILLIS));
         executionInfo.setMethod(method);
         executionInfo.setTarget(target);
@@ -50,9 +54,10 @@ public class MethodExecutionInfoFormatterTest {
 
         Long target = 100L;
 
+        // null ConnectionInfo
         MethodExecutionInfo executionInfo = new MethodExecutionInfo();
         executionInfo.setThreadId(5);
-        executionInfo.setConnectionId(null);
+        executionInfo.setConnectionInfo(null);
         executionInfo.setExecuteDuration(Duration.of(23, ChronoUnit.MILLIS));
         executionInfo.setMethod(method);
         executionInfo.setTarget(target);
@@ -61,6 +66,12 @@ public class MethodExecutionInfoFormatterTest {
         String result = formatter.format(executionInfo);
 
         assertEquals("  1: Thread:5 Connection:n/a Time:23  Long#create()", result);
+
+        // null ConnectionId
+        executionInfo.setConnectionInfo(new ConnectionInfo());
+        result = formatter.format(executionInfo);
+
+        assertEquals("  2: Thread:5 Connection:n/a Time:23  Long#create()", result);
     }
 
     @Test

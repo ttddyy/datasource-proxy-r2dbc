@@ -5,6 +5,7 @@ import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Result;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionIdManager;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyEventType;
@@ -302,7 +303,7 @@ public class CallbackSupportTest {
         Batch target = mock(Batch.class);
         Object[] args = new Object[]{};
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
-        String connectionId = "conn-id";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
 
         // produce single result in order to trigger StepVerifier#consumeNextWith.
         Result mockResult = mock(Result.class);
@@ -310,7 +311,7 @@ public class CallbackSupportTest {
 
         when(target.execute()).thenReturn(publisher);
 
-        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionId);
+        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionInfo);
 
         // verify method on target is invoked
         verify(target).execute();
@@ -342,7 +343,7 @@ public class CallbackSupportTest {
         assertEquals(mockResult, afterMethodExecution.getResult());
         assertEquals(executeMethod, afterMethodExecution.getMethod());
         assertEquals(args, afterMethodExecution.getMethodArgs());
-        assertEquals(connectionId, afterMethodExecution.getConnectionId());
+        assertSame(connectionInfo, afterMethodExecution.getConnectionInfo());
 
         String threadName = Thread.currentThread().getName();
         long threadId = Thread.currentThread().getId();
@@ -366,7 +367,7 @@ public class CallbackSupportTest {
         Batch target = mock(Batch.class);
         Object[] args = new Object[]{};
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
-        String connectionId = "conn-id";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
 
         // publisher that throws exception
         RuntimeException exception = new RuntimeException();
@@ -374,7 +375,7 @@ public class CallbackSupportTest {
 
         when(target.execute()).thenReturn(publisher);
 
-        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionId);
+        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionInfo);
 
         // verify method on target is invoked
         verify(target).execute();
@@ -397,7 +398,7 @@ public class CallbackSupportTest {
         assertEquals(target, afterMethodExecution.getTarget());
         assertEquals(executeMethod, afterMethodExecution.getMethod());
         assertEquals(args, afterMethodExecution.getMethodArgs());
-        assertEquals(connectionId, afterMethodExecution.getConnectionId());
+        assertEquals(connectionInfo, afterMethodExecution.getConnectionInfo());
 
         String threadName = Thread.currentThread().getName();
         long threadId = Thread.currentThread().getId();
@@ -421,14 +422,14 @@ public class CallbackSupportTest {
         Batch target = mock(Batch.class);
         Object[] args = new Object[]{"QUERY"};
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
-        String connectionId = "conn-id";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
 
         // produce single result in order to trigger StepVerifier#consumeNextWith.
         Batch mockBatch = mock(Batch.class);
 
         when(target.add("QUERY")).thenReturn(mockBatch);
 
-        Object result = this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionId);
+        Object result = this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionInfo);
 
         // verify method on target is invoked
         verify(target).add("QUERY");
@@ -446,7 +447,7 @@ public class CallbackSupportTest {
         assertEquals(mockBatch, afterMethodExecution.getResult());
         assertEquals(addMethod, afterMethodExecution.getMethod());
         assertEquals(args, afterMethodExecution.getMethodArgs());
-        assertEquals(connectionId, afterMethodExecution.getConnectionId());
+        assertSame(connectionInfo, afterMethodExecution.getConnectionInfo());
 
         String threadName = Thread.currentThread().getName();
         long threadId = Thread.currentThread().getId();
@@ -469,14 +470,14 @@ public class CallbackSupportTest {
         Batch target = mock(Batch.class);
         Object[] args = new Object[]{"QUERY"};
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
-        String connectionId = "conn-id";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
 
         // method invocation throws exception
         RuntimeException exception = new RuntimeException();
         when(target.add("QUERY")).thenThrow(exception);
 
         assertThrows(RuntimeException.class, () -> {
-            this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionId);
+            this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionInfo);
         });
 
         verify(target).add("QUERY");
@@ -494,7 +495,7 @@ public class CallbackSupportTest {
         assertEquals(target, afterMethodExecution.getTarget());
         assertEquals(addMethod, afterMethodExecution.getMethod());
         assertEquals(args, afterMethodExecution.getMethodArgs());
-        assertEquals(connectionId, afterMethodExecution.getConnectionId());
+        assertEquals(connectionInfo, afterMethodExecution.getConnectionInfo());
 
         String threadName = Thread.currentThread().getName();
         long threadId = Thread.currentThread().getId();
@@ -519,6 +520,7 @@ public class CallbackSupportTest {
         Object[] args = new Object[]{};
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
         String connectionId = "conn-id";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
 
         // produce single result in order to trigger StepVerifier#assertNext.
         Connection mockConnection = mock(Connection.class);
@@ -535,14 +537,15 @@ public class CallbackSupportTest {
         // verify method on target is invoked
         verify(target).create();
 
-        StepVerifier.create((Publisher<Tuple2<Connection, String>>) result)
+        StepVerifier.create((Publisher<Tuple2<Connection, ConnectionInfo>>) result)
                 .expectSubscription()
                 .assertNext(tuple2 -> {
                     // in middle of chain.
                     // at this point, beforeMethod has already called and special logic for
                     // "ConnectionFactory#create" has performed.
                     assertSame(mockConnection, tuple2.getT1());
-                    assertEquals(connectionId, tuple2.getT2());
+                    // new ConnectionInfo is created
+                    assertEquals(connectionId, tuple2.getT2().getConnectionId());
 
                     MethodExecutionInfo beforeMethod = listener.getBeforeMethodExecutionInfo();
                     assertNotNull(beforeMethod);
@@ -554,7 +557,7 @@ public class CallbackSupportTest {
                 .verify();
 
         MethodExecutionInfo afterMethodExecution = listener.getAfterMethodExecutionInfo();
-        assertEquals(connectionId, afterMethodExecution.getConnectionId());
+        assertEquals(connectionId, afterMethodExecution.getConnectionInfo().getConnectionId());
         assertSame(target, afterMethodExecution.getTarget());
         assertSame(mockConnection, afterMethodExecution.getResult());
 

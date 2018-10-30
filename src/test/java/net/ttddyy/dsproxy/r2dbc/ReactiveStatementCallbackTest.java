@@ -4,6 +4,7 @@ import io.r2dbc.spi.Statement;
 import net.ttddyy.dsproxy.r2dbc.core.Binding;
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.Bindings;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
@@ -40,7 +41,7 @@ public class ReactiveStatementCallbackTest {
     void add() throws Throwable {
         LastExecutionAwareListener testListener = new LastExecutionAwareListener();
 
-        String connectionId = "100";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
         ProxyConfig proxyConfig = new ProxyConfig();
         proxyConfig.addListener(testListener);
         Statement statement = mock(Statement.class);
@@ -48,7 +49,7 @@ public class ReactiveStatementCallbackTest {
 
         when(statement.add()).thenReturn(mockResult);
 
-        ReactiveStatementCallback callback = new ReactiveStatementCallback(statement, null, connectionId, proxyConfig);
+        ReactiveStatementCallback callback = new ReactiveStatementCallback(statement, null, connectionInfo, proxyConfig);
 
         Object result = callback.invoke(null, ADD_METHOD, null);
 
@@ -60,11 +61,11 @@ public class ReactiveStatementCallbackTest {
         LastExecutionAwareListener testListener = new LastExecutionAwareListener();
 
         String query = "QUERY";
-        String connectionId = "100";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
         ProxyConfig proxyConfig = new ProxyConfig();
         proxyConfig.addListener(testListener);
         Statement statement = mock(Statement.class);
-        ReactiveStatementCallback callback = new ReactiveStatementCallback(statement, query, connectionId, proxyConfig);
+        ReactiveStatementCallback callback = new ReactiveStatementCallback(statement, query, connectionInfo, proxyConfig);
 
         when(statement.execute()).thenReturn(Flux.empty());
 
@@ -148,11 +149,11 @@ public class ReactiveStatementCallbackTest {
         LastExecutionAwareListener testListener = new LastExecutionAwareListener();
 
         String query = "QUERY";
-        String connectionId = "100";
+        ConnectionInfo connectionInfo = new ConnectionInfo();
         ProxyConfig proxyConfig = new ProxyConfig();
         proxyConfig.addListener(testListener);
         Statement statement = mock(Statement.class);
-        ReactiveStatementCallback callback = new ReactiveStatementCallback(statement, query, connectionId, proxyConfig);
+        ReactiveStatementCallback callback = new ReactiveStatementCallback(statement, query, connectionInfo, proxyConfig);
 
         when(statement.execute()).thenReturn(Flux.empty());
 

@@ -15,7 +15,7 @@ public class MethodExecutionInfo {
     private Object[] methodArgs;
     private Object result;
     private Throwable thrown;
-    private String connectionId;
+    private ConnectionInfo connectionInfo;
 
     private Duration executeDuration = Duration.ZERO;
     private String threadName;
@@ -63,12 +63,12 @@ public class MethodExecutionInfo {
         this.thrown = thrown;
     }
 
-    public String getConnectionId() {
-        return connectionId;
+    public ConnectionInfo getConnectionInfo() {
+        return this.connectionInfo;
     }
 
-    public void setConnectionId(String connectionId) {
-        this.connectionId = connectionId;
+    public void setConnectionInfo(ConnectionInfo connectionInfo) {
+        this.connectionInfo = connectionInfo;
     }
 
     public Duration getExecuteDuration() {

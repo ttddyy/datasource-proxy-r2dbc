@@ -4,6 +4,7 @@ import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryMetadata;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionIdManager;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.springframework.util.ReflectionUtils;
@@ -14,6 +15,7 @@ import java.lang.reflect.Method;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -36,10 +38,11 @@ public class ReactiveConnectionFactoryCallbackTest {
         ProxyFactory proxyFactory = mock(ProxyFactory.class);
 
         String connectionId = "100";
-        when(idManager.getId(mockConnection)).thenReturn(connectionId);
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        connectionInfo.setConnectionId(connectionId);
 
         // mock where it creates proxied connection
-        when(proxyFactory.createConnection(mockConnection, connectionId)).thenReturn(anotherMockConnection);
+        when(proxyFactory.createConnection(any(Connection.class), any(ConnectionInfo.class))).thenReturn(anotherMockConnection);
 
         // mock call to original ConnectionFactory#create()
         doReturn(Mono.just(mockConnection)).when(connectionFactory).create();

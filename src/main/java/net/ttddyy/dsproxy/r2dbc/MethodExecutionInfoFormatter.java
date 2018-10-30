@@ -1,5 +1,6 @@
 package net.ttddyy.dsproxy.r2dbc;
 
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 
 import java.util.ArrayList;
@@ -29,7 +30,9 @@ public class MethodExecutionInfoFormatter implements Function<MethodExecutionInf
         String methodName = executionInfo.getMethod().getName();
         long threadId = executionInfo.getThreadId();
 
-        String connectionId = executionInfo.getConnectionId() == null ? "n/a" : executionInfo.getConnectionId();
+        ConnectionInfo connectionInfo = executionInfo.getConnectionInfo();
+
+        String connectionId = (connectionInfo == null || connectionInfo.getConnectionId() == null) ? "n/a" : connectionInfo.getConnectionId();
 
         sb.append(String.format("%3d: Thread:%d Connection:%s Time:%d  %s#%s()",
                 seq, threadId, connectionId, executionTime, targetClass, methodName));

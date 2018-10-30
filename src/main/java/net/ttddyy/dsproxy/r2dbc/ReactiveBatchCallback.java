@@ -2,6 +2,7 @@ package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Result;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
@@ -22,20 +23,20 @@ public class ReactiveBatchCallback extends CallbackSupport {
 
     private Batch<?> batch;
 
-    private String connectionId;
+    private ConnectionInfo connectionInfo;
     private List<String> queries = new ArrayList<>();
 
-    public ReactiveBatchCallback(Batch<?> batch, String connectionId, ProxyConfig proxyConfig) {
+    public ReactiveBatchCallback(Batch<?> batch, ConnectionInfo connectionInfo, ProxyConfig proxyConfig) {
         super(proxyConfig);
         this.batch = batch;
-        this.connectionId = connectionId;
+        this.connectionInfo = connectionInfo;
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
         String methodName = method.getName();
 
-        Object result = proceedExecution(method, this.batch, args, this.proxyConfig.getListeners(), this.connectionId);
+        Object result = proceedExecution(method, this.batch, args, this.proxyConfig.getListeners(), this.connectionInfo);
 
         if ("add".equals(methodName)) {
             this.queries.add((String) args[0]);
@@ -51,7 +52,7 @@ public class ReactiveBatchCallback extends CallbackSupport {
             execInfo.setBatchSize(this.queries.size());
             execInfo.setMethod(method);
             execInfo.setMethodArgs(args);
-            execInfo.setConnectionId(this.connectionId);
+            execInfo.setConnectionInfo(this.connectionInfo);
 
             // API defines "execute()" returns a publisher
             Publisher<? extends Result> publisher = (Publisher<? extends Result>) result;

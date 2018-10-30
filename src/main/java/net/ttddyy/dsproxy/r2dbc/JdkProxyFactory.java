@@ -4,6 +4,7 @@ import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -31,24 +32,24 @@ public class JdkProxyFactory implements ProxyFactory {
     }
 
     @Override
-    public Connection createConnection(Connection connection, String connectionId) {
+    public Connection createConnection(Connection connection, ConnectionInfo connectionInfo) {
         return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
                 new Class[] { Connection.class },
-                new ConnectionInvocationHandler(connection, connectionId, this.proxyConfig));
+                new ConnectionInvocationHandler(connection, connectionInfo, this.proxyConfig));
     }
 
     @Override
-    public Batch<?> createBatch(Batch<?> batch, String connectionId) {
+    public Batch<?> createBatch(Batch<?> batch, ConnectionInfo connectionInfo) {
         return (Batch<?>) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
                 new Class[] { Batch.class },
-                new BatchInvocationHandler(batch, connectionId, this.proxyConfig));
+                new BatchInvocationHandler(batch, connectionInfo, this.proxyConfig));
     }
 
     @Override
-    public Statement<?> createStatement(Statement<?> statement, String query, String connectionId) {
+    public Statement<?> createStatement(Statement<?> statement, String query, ConnectionInfo connectionInfo) {
         return (Statement<?>) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
                 new Class[] { Statement.class },
-                new StatementInvocationHandler(statement, query, connectionId, this.proxyConfig));
+                new StatementInvocationHandler(statement, query, connectionInfo, this.proxyConfig));
     }
 
     public static class ConnectionFactoryInvocationHandler implements InvocationHandler {
@@ -69,8 +70,8 @@ public class JdkProxyFactory implements ProxyFactory {
 
         private ReactiveConnectionCallback delegate;
 
-        public ConnectionInvocationHandler(Connection connection, String connectionId, ProxyConfig proxyConfig) {
-            this.delegate = new ReactiveConnectionCallback(connection, connectionId, proxyConfig);
+        public ConnectionInvocationHandler(Connection connection, ConnectionInfo connectionInfo, ProxyConfig proxyConfig) {
+            this.delegate = new ReactiveConnectionCallback(connection, connectionInfo, proxyConfig);
         }
 
         @Override
@@ -83,8 +84,8 @@ public class JdkProxyFactory implements ProxyFactory {
 
         private ReactiveBatchCallback delegate;
 
-        public BatchInvocationHandler(Batch<?> batch, String connectionId, ProxyConfig proxyConfig) {
-            this.delegate = new ReactiveBatchCallback(batch, connectionId, proxyConfig);
+        public BatchInvocationHandler(Batch<?> batch, ConnectionInfo connectionInfo, ProxyConfig proxyConfig) {
+            this.delegate = new ReactiveBatchCallback(batch, connectionInfo, proxyConfig);
         }
 
         @Override
@@ -97,8 +98,8 @@ public class JdkProxyFactory implements ProxyFactory {
 
         private ReactiveStatementCallback delegate;
 
-        public StatementInvocationHandler(Statement<?> statement, String query, String connectionId, ProxyConfig proxyConfig) {
-            this.delegate = new ReactiveStatementCallback(statement, query, connectionId, proxyConfig);
+        public StatementInvocationHandler(Statement<?> statement, String query, ConnectionInfo connectionInfo, ProxyConfig proxyConfig) {
+            this.delegate = new ReactiveStatementCallback(statement, query, connectionInfo, proxyConfig);
         }
 
         @Override

@@ -3,6 +3,7 @@ package net.ttddyy.dsproxy.r2dbc;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Result;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyEventType;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener;
@@ -58,7 +59,7 @@ public abstract class CallbackSupport {
      * Augment method invocation and call method listener.
      */
     protected Object proceedExecution(Method method, Object target, Object[] args,
-                                      ProxyExecutionListener listener, String connectionId) throws Throwable {
+                                      ProxyExecutionListener listener, ConnectionInfo connectionInfo) throws Throwable {
 
         if (PASS_THROUGH_METHODS.contains(method)) {
             try {
@@ -85,7 +86,7 @@ public abstract class CallbackSupport {
         executionInfo.setMethod(method);
         executionInfo.setMethodArgs(args);
         executionInfo.setTarget(target);
-        executionInfo.setConnectionId(connectionId);
+        executionInfo.setConnectionInfo(connectionInfo);
 
         Class<?> returnType = method.getReturnType();
 
@@ -129,8 +130,11 @@ public abstract class CallbackSupport {
                             Connection conn = (Connection) resultObj;
                             String connId = this.proxyConfig.getConnectionIdManager().getId(conn);
 
-                            executionInfo.setConnectionId(connId);
-                            return Tuples.of(resultObj, connId);
+                            ConnectionInfo newConnectionInfo = new ConnectionInfo();
+                            newConnectionInfo.setConnectionId(connId);
+
+                            executionInfo.setConnectionInfo(newConnectionInfo);
+                            return Tuples.of(resultObj, newConnectionInfo);
                         }
 
                         return resultObj;

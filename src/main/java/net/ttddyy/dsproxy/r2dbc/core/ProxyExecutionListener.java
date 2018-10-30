@@ -11,7 +11,15 @@ import io.r2dbc.spi.Statement;
  */
 public interface ProxyExecutionListener {
 
-
+    /**
+     * Called before and after every invocation of methods.
+     *
+     * Default implementation of this method dispatches to {@link #beforeMethod(MethodExecutionInfo)} and
+     * {@link #afterMethod(MethodExecutionInfo)}. Thus overriding this method will stop calling them
+     * unless subclass calls {@code super.onMethodExecution(executionInfo);}.
+     *
+     * @param executionInfo query execution context
+     */
     default void onMethodExecution(MethodExecutionInfo executionInfo) {
         ProxyEventType eventType = executionInfo.getProxyEventType();
         if (eventType == ProxyEventType.BEFORE_METHOD) {
@@ -21,6 +29,15 @@ public interface ProxyExecutionListener {
         }
     }
 
+    /**
+     * Called before and after execution of query.
+     *
+     * Default implementation of this method dispatches to {@link #beforeQuery(QueryExecutionInfo)} and
+     * {@link #afterQuery(QueryExecutionInfo)}. Thus overriding this method will stop calling them
+     * unless subclass calls {@code super.onQueryExecution(executionInfo);}.
+     *
+     * @param executionInfo query execution context
+     */
     default void onQueryExecution(QueryExecutionInfo executionInfo) {
         ProxyEventType eventType = executionInfo.getProxyEventType();
         if (eventType == ProxyEventType.BEFORE_QUERY) {

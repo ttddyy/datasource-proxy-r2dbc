@@ -125,26 +125,31 @@ notifications, calling external system, etc.
 
 ## Listener API
 
-`ProxyExecutionListenr` is the listener interface.
-This defines callbacks for before/after method invocation and query execution.
+`ProxyExecutionListener` is the listener interface.
+This defines callbacks for method invocation, query execution, and query result processing.
 
 ```java
+// invoked before any method on proxy is called
 void beforeMethod(MethodExecutionInfo executionInfo);
 
+// invoked after any method on proxy is called
 void afterMethod(MethodExecutionInfo executionInfo);
 
-void eachQueryResult(QueryExecutionInfo execInfo);
-
+// invoked before query gets executed
 void beforeQuery(QueryExecutionInfo execInfo);
 
+// invoked after query is executed
 void afterQuery(QueryExecutionInfo execInfo);
+
+// invoked on processing(subscribing) each query result
+void eachQueryResult(QueryExecutionInfo execInfo);
 ```
 
 `MethodExecutionInfo` and `QueryExecutionInfo` contains contextual information about the
 method/query execution.
 
 Any method calls on proxied `ConnectionFactory`, `Connection`, `Batch`, and `Statement`
-triggers method callbacks - `beforeMethod()` and `afterMethod()`.
+triggers method callbacks - `beforeMethod()` and `afterMethod()`.  
 `Batch#execute()` and `Statement#execute()` triggers query callbacks - `beforeQuery()`
 and `afterQuery()`.(Specifically when returned result publisher is subscribed.)  
 `eachQueryResult()` is called on each query result while being subscribed.
@@ -164,7 +169,10 @@ ConnectionFactory proxyConnectionFactory =
   ProxyConnectionFactoryBuilder.create(connectionFactory)  // pass original ConnectionFactory
     .onAfterMethod(mono -> {
       ...   // callback after method execution
-    })  
+    })
+    .onEachQueryResult(mono -> {
+      ...   // callback for each result 
+    })
     .onAfterQuery(mono -> {
       ...  //  callback after query execution
     })
@@ -213,7 +221,7 @@ ConnectionFactory proxyConnectionFactory =
   ProxyConnectionFactoryBuilder.create(connectionFactory)  // wrap original ConnectionFactory
     // on every query execution
     .onAfterQuery(execInfo ->
-      execInfo.map(queryExecutionFormatter::format)
+      execInfo.map(queryExecutionFormatter::format)    // convert QueryExecutionInfo to String
               .doOnNext(System.out::println)       // print out executed query
               .subscribe())
     .build();
@@ -259,7 +267,7 @@ ConnectionFactory proxyConnectionFactory =
   ProxyConnectionFactoryBuilder.create(connectionFactory)  // wrap original ConnectionFactory
     // on every method invocation
     .onAfterMethod(execInfo ->  
-      execInfo.map(methodExecutionFormatter::format)
+      execInfo.map(methodExecutionFormatter::format)    // convert MethodExecutionInfo to String
               .doOnNext(System.out::println)        // print out method execution (method tracing)
               .subscribe())
     .build();

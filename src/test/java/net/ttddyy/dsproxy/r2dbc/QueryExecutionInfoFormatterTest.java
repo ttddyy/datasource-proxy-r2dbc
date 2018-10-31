@@ -1,12 +1,12 @@
 package net.ttddyy.dsproxy.r2dbc;
 
-import net.ttddyy.dsproxy.r2dbc.core.Bindings;
-import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
-import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
-import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
-import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue.NullBindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue.SimpleBindingValue;
+import net.ttddyy.dsproxy.r2dbc.core.Bindings;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
+import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -124,9 +124,9 @@ public class QueryExecutionInfoFormatterTest {
 
 
     @Test
-    void onThread() {
+    void showThread() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_THREAD);
+        formatter.showThread();
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setThreadName("my-thread");
@@ -137,9 +137,9 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void onConnection() {
+    void showConnection() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_CONNECTION);
+        formatter.showConnection();
 
         ConnectionInfo connectionInfo = new ConnectionInfo();
         connectionInfo.setConnectionId("99");
@@ -152,9 +152,9 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void onSuccess() {
+    void showSuccess() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_SUCCESS);
+        formatter.showSuccess();
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setSuccess(true);
@@ -169,9 +169,9 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void onTime() {
+    void showTime() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_TIME);
+        formatter.showTime();
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setExecuteDuration(Duration.of(55, ChronoUnit.MILLIS));
@@ -181,9 +181,9 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void onType() {
+    void showType() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_TYPE);
+        formatter.showType();
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         String str;
@@ -198,9 +198,9 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void onBatchSize() {
+    void showBatchSize() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_BATCH_SIZE);
+        formatter.showBatchSize();
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setBatchSize(99);
@@ -210,9 +210,9 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void onBindingsSize() {
+    void showBindingsSize() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_BINDINGS_SIZE);
+        formatter.showBindingsSize();
 
         QueryExecutionInfo execInfo = new QueryExecutionInfo();
         execInfo.setBindingsSize(99);
@@ -222,9 +222,9 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void onQuery() {
+    void showQuery() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_QUERY);
+        formatter.showQuery();
 
         QueryInfo query1 = new QueryInfo("QUERY-1");
         QueryInfo query2 = new QueryInfo("QUERY-2");
@@ -252,9 +252,9 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void onBindingsWithIndexBinding() {
+    void showBindingsWithIndexBinding() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_BINDINGS);
+        formatter.showBindings();
 
         Bindings bindings1 = new Bindings();
         bindings1.addIndexBinding(0, new SimpleBindingValue("100"));
@@ -301,9 +301,9 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void onBindingsWithIdentifierBinding() {
+    void showBindingsWithIdentifierBinding() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.addConsumer(QueryExecutionInfoFormatter.DEFAULT_ON_BINDINGS);
+        formatter.showBindings();
 
         Bindings bindings1 = new Bindings();
         bindings1.addIdentifierBinding("$0", new SimpleBindingValue("100"));
@@ -370,13 +370,6 @@ public class QueryExecutionInfoFormatterTest {
         assertEquals("", result, "Does not generate anything.");
     }
 
-    @Test
-    void showThread() {
-        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.showThread();
-        String result = formatter.format(new QueryExecutionInfo());
-        assertEquals("Thread:(0)", result);
-    }
 
     @Test
     void showThreadWithConsumer() {
@@ -386,20 +379,6 @@ public class QueryExecutionInfoFormatterTest {
         assertEquals("my-thread", result);
     }
 
-
-    @Test
-    void showConnection() {
-        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.showConnection();
-
-        ConnectionInfo connectionInfo = new ConnectionInfo();
-        connectionInfo.setConnectionId("my-connection");
-        QueryExecutionInfo queryExecutionInfo = new QueryExecutionInfo();
-        queryExecutionInfo.setConnectionInfo(connectionInfo);
-
-        String result = formatter.format(queryExecutionInfo);
-        assertEquals("Connection:my-connection", result);
-    }
 
     @Test
     void showConnectionWithConsumer() {
@@ -415,14 +394,6 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void showSuccess() {
-        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.showSuccess();
-        String result = formatter.format(new QueryExecutionInfo());
-        assertEquals("Success:False", result);
-    }
-
-    @Test
     void showSuccessWithConsumer() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showSuccess(((executionInfo, sb) -> sb.append("my-success")));
@@ -430,13 +401,6 @@ public class QueryExecutionInfoFormatterTest {
         assertEquals("my-success", result);
     }
 
-    @Test
-    void showTime() {
-        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.showTime();
-        String result = formatter.format(new QueryExecutionInfo());
-        assertEquals("Time:0", result);
-    }
 
     @Test
     void showTimeWithConsumer() {
@@ -446,13 +410,6 @@ public class QueryExecutionInfoFormatterTest {
         assertEquals("my-time", result);
     }
 
-    @Test
-    void showType() {
-        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.showType();
-        String result = formatter.format(new QueryExecutionInfo());
-        assertEquals("Type:Statement", result);
-    }
 
     @Test
     void showTypeWithConsumer() {
@@ -462,13 +419,6 @@ public class QueryExecutionInfoFormatterTest {
         assertEquals("my-type", result);
     }
 
-    @Test
-    void showBatchSize() {
-        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.showBatchSize();
-        String result = formatter.format(new QueryExecutionInfo());
-        assertEquals("BatchSize:0", result);
-    }
 
     @Test
     void showBatchSizeWithConsumer() {
@@ -478,13 +428,6 @@ public class QueryExecutionInfoFormatterTest {
         assertEquals("my-batchsize", result);
     }
 
-    @Test
-    void showBindingsSize() {
-        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.showBindingsSize();
-        String result = formatter.format(new QueryExecutionInfo());
-        assertEquals("BindingsSize:0", result);
-    }
 
     @Test
     void showBindingsSizeWithConsumer() {
@@ -495,27 +438,11 @@ public class QueryExecutionInfoFormatterTest {
     }
 
     @Test
-    void showQuery() {
-        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.showQuery();
-        String result = formatter.format(new QueryExecutionInfo());
-        assertEquals("Query:[]", result);
-    }
-
-    @Test
     void showQueryWithConsumer() {
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.showQuery(((executionInfo, sb) -> sb.append("my-query")));
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-query", result);
-    }
-
-    @Test
-    void showBindings() {
-        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
-        formatter.showBindings();
-        String result = formatter.format(new QueryExecutionInfo());
-        assertEquals("Bindings:[]", result);
     }
 
     @Test
@@ -551,6 +478,94 @@ public class QueryExecutionInfoFormatterTest {
 
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals(expected, result);
+    }
+
+
+    @Test
+    void bindingValue() {
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.bindingValue((bindingValue, sb) -> {
+            sb.append("FOO");
+        });
+        formatter.showBindings();
+
+        Bindings bindingsByIndex = new Bindings();
+        bindingsByIndex.addIndexBinding(0, new SimpleBindingValue("100"));
+        bindingsByIndex.addIndexBinding(1, new NullBindingValue(Object.class));
+
+        Bindings bindingsByIdentifier = new Bindings();
+        bindingsByIdentifier.addIdentifierBinding("$0", new SimpleBindingValue("100"));
+        bindingsByIdentifier.addIdentifierBinding("$1", new NullBindingValue(Object.class));
+
+        QueryInfo queryWithIndexBindings = new QueryInfo();
+        QueryInfo queryWithIdentifierBindings = new QueryInfo();
+
+        queryWithIndexBindings.getBindingsList().addAll(Collections.singletonList(bindingsByIndex));
+        queryWithIdentifierBindings.getBindingsList().addAll(Collections.singletonList(bindingsByIdentifier));
+
+        QueryExecutionInfo execInfoWithIndexBindings = new QueryExecutionInfo();
+        QueryExecutionInfo execInfoWithIdentifierBindings = new QueryExecutionInfo();
+        execInfoWithIndexBindings.setQueries(Collections.singletonList(queryWithIndexBindings));
+        execInfoWithIdentifierBindings.setQueries(Collections.singletonList(queryWithIdentifierBindings));
+
+        String result;
+
+        result = formatter.format(execInfoWithIndexBindings);
+        assertEquals("Bindings:[(FOO,FOO)]", result);
+
+        result = formatter.format(execInfoWithIdentifierBindings);
+        assertEquals("Bindings:[($0=FOO,$1=FOO)]", result);
+    }
+
+    @Test
+    void indexBindings() {
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.indexBindings((bindings, sb) -> {
+            sb.append("FOO");
+        });
+        formatter.showBindings();
+
+        Bindings bindingsByIndex = new Bindings();
+        bindingsByIndex.addIndexBinding(0, new SimpleBindingValue("100"));
+        bindingsByIndex.addIndexBinding(1, new NullBindingValue(Object.class));
+
+        QueryInfo queryWithIndexBindings = new QueryInfo();
+
+        queryWithIndexBindings.getBindingsList().addAll(Collections.singletonList(bindingsByIndex));
+
+        QueryExecutionInfo execInfoWithIndexBindings = new QueryExecutionInfo();
+        execInfoWithIndexBindings.setQueries(Collections.singletonList(queryWithIndexBindings));
+
+        String result;
+
+        result = formatter.format(execInfoWithIndexBindings);
+        assertEquals("Bindings:[(FOO)]", result);
+
+    }
+
+    @Test
+    void identifierBindings() {
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.identifierBindings((bindingValue, sb) -> {
+            sb.append("FOO");
+        });
+        formatter.showBindings();
+
+        Bindings bindingsByIdentifier = new Bindings();
+        bindingsByIdentifier.addIdentifierBinding("$0", new SimpleBindingValue("100"));
+        bindingsByIdentifier.addIdentifierBinding("$1", new NullBindingValue(Object.class));
+
+        QueryInfo queryWithIdentifierBindings = new QueryInfo();
+
+        queryWithIdentifierBindings.getBindingsList().addAll(Collections.singletonList(bindingsByIdentifier));
+
+        QueryExecutionInfo execInfoWithIdentifierBindings = new QueryExecutionInfo();
+        execInfoWithIdentifierBindings.setQueries(Collections.singletonList(queryWithIdentifierBindings));
+
+        String result;
+
+        result = formatter.format(execInfoWithIdentifierBindings);
+        assertEquals("Bindings:[(FOO)]", result);
     }
 
 }

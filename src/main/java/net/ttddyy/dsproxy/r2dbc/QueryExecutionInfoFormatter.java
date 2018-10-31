@@ -3,8 +3,8 @@ package net.ttddyy.dsproxy.r2dbc;
 import net.ttddyy.dsproxy.r2dbc.core.Binding;
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue.NullBindingValue;
-import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
+import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 
 import java.util.ArrayList;
@@ -24,7 +24,10 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
 
     private static final String DEFAULT_DELIMITER = " ";
 
-    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_THREAD = (executionInfo, sb) -> {
+    /**
+     * Default implementation for formatting thread info.
+     */
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onThread = (executionInfo, sb) -> {
         sb.append("Thread:");
         sb.append(executionInfo.getThreadName());
         sb.append("(");
@@ -32,37 +35,58 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
         sb.append(")");
     };
 
-    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_CONNECTION = (executionInfo, sb) -> {
+    /**
+     * Default implementation for formatting connection.
+     */
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onConnection = (executionInfo, sb) -> {
         sb.append("Connection:");
         sb.append(executionInfo.getConnectionInfo().getConnectionId());
     };
 
-    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_SUCCESS = (executionInfo, sb) -> {
+    /**
+     * Default implementation for formatting success.
+     */
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onSuccess = (executionInfo, sb) -> {
         sb.append("Success:");
         sb.append(executionInfo.isSuccess() ? "True" : "False");
     };
 
-    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_TIME = (executionInfo, sb) -> {
+    /**
+     * Default implementation for formatting execution time.
+     */
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onTime = (executionInfo, sb) -> {
         sb.append("Time:");
         sb.append(executionInfo.getExecuteDuration().toMillis());
     };
 
-    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_TYPE = (executionInfo, sb) -> {
+    /**
+     * Default implementation for formatting execution type.
+     */
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onType = (executionInfo, sb) -> {
         sb.append("Type:");
         sb.append(executionInfo.getType() == ExecutionType.BATCH ? "Batch" : "Statement");
     };
 
-    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_BATCH_SIZE = (executionInfo, sb) -> {
+    /**
+     * Default implementation for formatting batch size.
+     */
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onBatchSize = (executionInfo, sb) -> {
         sb.append("BatchSize:");
         sb.append(executionInfo.getBatchSize());
     };
 
-    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_BINDINGS_SIZE = (executionInfo, sb) -> {
+    /**
+     * Default implementation for formatting size of bindings.
+     */
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onBindingsSize = (executionInfo, sb) -> {
         sb.append("BindingsSize:");
         sb.append(executionInfo.getBindingsSize());
     };
 
-    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_QUERY = (executionInfo, sb) -> {
+    /**
+     * Default implementation for formatting queries.
+     */
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onQuery = (executionInfo, sb) -> {
         sb.append("Query:[");
 
         List<QueryInfo> queries = executionInfo.getQueries();
@@ -76,7 +100,10 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
         sb.append("]");
     };
 
-    public static final BiConsumer<BindingValue, StringBuilder> DEFAULT_ON_BINDING_VALUE = (bindingValue, sb) -> {
+    /**
+     * Default implementation for formatting binding value.
+     */
+    public BiConsumer<BindingValue, StringBuilder> onBindingValue = (bindingValue, sb) -> {
         if (bindingValue instanceof NullBindingValue) {
             Class<?> type = ((NullBindingValue) bindingValue).getType();
             sb.append("null(");
@@ -88,37 +115,45 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
     };
 
     /**
+     * Default implementation for formatting bindings by index.
+     *
      * generate comma separated values. "val1,val2,val3"
      */
-    public static final BiConsumer<SortedSet<Binding>, StringBuilder> DEFAULT_ON_INDEX_BINDINGS = (indexBindings, sb) -> {
+    public BiConsumer<SortedSet<Binding>, StringBuilder> onIndexBindings = (indexBindings, sb) -> {
         String s = indexBindings.stream()
                 .map(Binding::getBindingValue)
                 .map(bindingValue -> {
                     StringBuilder sbuilder = new StringBuilder();
-                    DEFAULT_ON_BINDING_VALUE.accept(bindingValue, sbuilder);
+                    this.onBindingValue.accept(bindingValue, sbuilder);
                     return sbuilder.toString();
                 })
                 .collect(joining(","));
 
         sb.append(s);
     };
+
     /**
+     * Default implementation for formatting bindings by identifier.
+     *
      * Generate comma separated key-values pair string. "key1=val1,key2=val2,key3=val3"
      */
-    public static final BiConsumer<SortedSet<Binding>, StringBuilder> DEFAULT_ON_IDENTIFIER_BINDINGS = (identifierBindings, sb) -> {
+    public BiConsumer<SortedSet<Binding>, StringBuilder> onIdentifierBindings = (identifierBindings, sb) -> {
         String s = identifierBindings.stream()
                 .map(binding -> {
                     StringBuilder sbuilder = new StringBuilder();
                     sbuilder.append(binding.getKey());
                     sbuilder.append("=");
-                    DEFAULT_ON_BINDING_VALUE.accept(binding.getBindingValue(), sbuilder);
+                    this.onBindingValue.accept(binding.getBindingValue(), sbuilder);
                     return sbuilder.toString();
                 })
                 .collect(joining(","));
         sb.append(s);
     };
 
-    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_ON_BINDINGS = (executionInfo, sb) -> {
+    /**
+     * Default implementation for formatting bindings.
+     */
+    public BiConsumer<QueryExecutionInfo, StringBuilder> onBindings = (executionInfo, sb) -> {
         sb.append("Bindings:[");
 
         List<QueryInfo> queries = executionInfo.getQueries();
@@ -131,12 +166,12 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
                                 StringBuilder sbForBindings = new StringBuilder();
                                 SortedSet<Binding> indexBindings = binds.getIndexBindings();
                                 if (!indexBindings.isEmpty()) {
-                                    DEFAULT_ON_INDEX_BINDINGS.accept(indexBindings, sbForBindings);
+                                    this.onIndexBindings.accept(indexBindings, sbForBindings);
                                 }
 
                                 SortedSet<Binding> identifierBindings = binds.getIdentifierBindings();
                                 if (!identifierBindings.isEmpty()) {
-                                    DEFAULT_ON_IDENTIFIER_BINDINGS.accept(identifierBindings, sbForBindings);
+                                    this.onIdentifierBindings.accept(identifierBindings, sbForBindings);
                                 }
                                 return sbForBindings.toString();
                             })
@@ -148,20 +183,10 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
         sb.append("]");
     };
 
-    public static final BiConsumer<QueryExecutionInfo, StringBuilder> DEFAULT_NEWLINE = (executionInfo, sb) -> {
+    private BiConsumer<QueryExecutionInfo, StringBuilder> newLine = (executionInfo, sb) -> {
         sb.append(System.lineSeparator());
     };
 
-    private BiConsumer<QueryExecutionInfo, StringBuilder> onThread = DEFAULT_ON_THREAD;
-    private BiConsumer<QueryExecutionInfo, StringBuilder> onConnection = DEFAULT_ON_CONNECTION;
-    private BiConsumer<QueryExecutionInfo, StringBuilder> onSuccess = DEFAULT_ON_SUCCESS;
-    private BiConsumer<QueryExecutionInfo, StringBuilder> onTime = DEFAULT_ON_TIME;
-    private BiConsumer<QueryExecutionInfo, StringBuilder> onType = DEFAULT_ON_TYPE;
-    private BiConsumer<QueryExecutionInfo, StringBuilder> onBatchSize = DEFAULT_ON_BATCH_SIZE;
-    private BiConsumer<QueryExecutionInfo, StringBuilder> onBindingsSize = DEFAULT_ON_BINDINGS_SIZE;
-    private BiConsumer<QueryExecutionInfo, StringBuilder> onQuery = DEFAULT_ON_QUERY;
-    private BiConsumer<QueryExecutionInfo, StringBuilder> onBindings = DEFAULT_ON_BINDINGS;
-    private BiConsumer<QueryExecutionInfo, StringBuilder> newLine = DEFAULT_NEWLINE;
     private String delimiter = DEFAULT_DELIMITER;
 
     private List<BiConsumer<QueryExecutionInfo, StringBuilder>> consumers = new ArrayList<>();
@@ -324,6 +349,31 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
      */
     public QueryExecutionInfoFormatter newLine() {
         this.consumers.add(this.newLine);
+        return this;
+    }
+
+
+    /**
+     * Set a consumer for converting {@link BindingValue}.
+     */
+    public QueryExecutionInfoFormatter bindingValue(BiConsumer<BindingValue, StringBuilder> onBindingValue) {
+        this.onBindingValue = onBindingValue;
+        return this;
+    }
+
+    /**
+     * Set a consumer for converting {@link SortedSet} of {@link Binding} constructed by bind-by-index.
+     */
+    public QueryExecutionInfoFormatter indexBindings(BiConsumer<SortedSet<Binding>, StringBuilder> onIndexBindings) {
+        this.onIndexBindings = onIndexBindings;
+        return this;
+    }
+
+    /**
+     * Set a consumer for converting {@link SortedSet} of {@link Binding} constructed by bind-by-identifier.
+     */
+    public QueryExecutionInfoFormatter identifierBindings(BiConsumer<SortedSet<Binding>, StringBuilder> onIdentifierBindings) {
+        this.onIdentifierBindings = onIdentifierBindings;
         return this;
     }
 

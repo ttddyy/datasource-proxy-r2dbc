@@ -1,6 +1,8 @@
 package net.ttddyy.dsproxy.r2dbc.core;
 
 /**
+ * Represent a value for {@link io.r2dbc.spi.Statement#bind} and {@link io.r2dbc.spi.Statement#bindNull} operations.
+ *
  * @author Tadaya Tsuyukubo
  */
 public interface BindingValue {

@@ -9,7 +9,6 @@ import java.util.TreeSet;
 import static java.util.Comparator.naturalOrder;
 
 /**
- *
  * @author Tadaya Tsuyukubo
  */
 public class Bindings {
@@ -33,8 +32,7 @@ public class Bindings {
         return identifierBindings;
     }
 
-    public static class IndexBinding implements
-            Binding, Comparable<IndexBinding> {
+    public static class IndexBinding implements Binding, Comparable<IndexBinding> {
         private int index;
         private BindingValue value;
 
@@ -59,8 +57,7 @@ public class Bindings {
         }
     }
 
-    public static class IdentifierBinding implements
-            Binding, Comparable<IdentifierBinding> {
+    public static class IdentifierBinding implements Binding, Comparable<IdentifierBinding> {
         private Object identifier;
         private BindingValue value;
 

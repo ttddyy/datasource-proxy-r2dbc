@@ -39,6 +39,7 @@ public class ReactiveConnectionFactoryCallback extends CallbackSupport {
 
                 ConnectionInfo connectionInfo = new ConnectionInfo();
                 connectionInfo.setConnectionId(connectionId);
+                connectionInfo.setClosed(false);
 
                 executionInfo.setConnectionInfo(connectionInfo);
 
@@ -47,7 +48,7 @@ public class ReactiveConnectionFactoryCallback extends CallbackSupport {
 
         }
 
-        Object result = proceedExecution(method, this.connectionFactory, args, this.proxyConfig.getListeners(), null, onNext);
+        Object result = proceedExecution(method, this.connectionFactory, args, this.proxyConfig.getListeners(), null, onNext, null);
         return result;
     }
 

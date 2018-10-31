@@ -4,8 +4,11 @@ import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 
 import java.lang.reflect.Method;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * Proxy callback for {@link Connection}.
@@ -27,7 +30,30 @@ public class ReactiveConnectionCallback extends CallbackSupport {
 
         String methodName = method.getName();
 
-        Object result = proceedExecution(method, this.connection, args, this.proxyConfig.getListeners(), this.connectionInfo, null);
+        BiFunction<Object, MethodExecutionInfo, Object> onNext = null;
+        Consumer<MethodExecutionInfo> onComplete = null;
+
+        // since these methods return Publisher<Void> pass the callback for doOnComplete().
+        if ("beginTransaction".equals(methodName)) {
+            onComplete = executionInfo -> {
+                executionInfo.getConnectionInfo().incrementTransactionCount();
+            };
+        } else if ("commitTransaction".equals(methodName)) {
+            onComplete = executionInfo -> {
+                executionInfo.getConnectionInfo().incrementCommitCount();
+            };
+        } else if ("rollbackTransaction".equals(methodName)) {
+            onComplete = executionInfo -> {
+                executionInfo.getConnectionInfo().incrementRollbackCount();
+            };
+        } else if ("close".equals(methodName)) {
+            onComplete = executionInfo -> {
+                executionInfo.getConnectionInfo().setClosed(true);
+            };
+        }
+        // TODO: createSavepoint, releaseSavepoint, rollbackTransactionToSavepoint
+
+        Object result = proceedExecution(method, this.connection, args, this.proxyConfig.getListeners(), this.connectionInfo, null, onComplete);
 
         if ("createBatch".equals(methodName)) {
             return this.proxyConfig.getProxyFactory().createBatch((Batch) result, this.connectionInfo);

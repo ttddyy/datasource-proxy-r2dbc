@@ -44,7 +44,7 @@ public class ReactiveStatementCallback extends CallbackSupport {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
         String methodName = method.getName();
-        Object result = proceedExecution(method, this.statement, args, this.proxyConfig.getListeners(), this.connectionInfo, null);
+        Object result = proceedExecution(method, this.statement, args, this.proxyConfig.getListeners(), this.connectionInfo, null, null);
 
         // add, bind, bindNull, execute
         if ("add".equals(methodName)) {

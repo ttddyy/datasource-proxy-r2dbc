@@ -70,7 +70,7 @@ public class ConnectionInfo {
     }
 
     /**
-     * Returns how many times {@link Connection#rollbackTransaction()} or {@link Connection#rollbackTransactionToSavepoint(String)} methods are called.
+     * Returns how many times {@link Connection#rollbackTransaction()} method is called.
      *
      * @return num of rollback methods being called
      */

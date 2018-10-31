@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -52,10 +53,21 @@ public abstract class CallbackSupport {
 
     /**
      * Augment method invocation and call method listener.
+     *
+     * @param method         method to invoke on target
+     * @param target         an object being invoked
+     * @param args           arguments for the method
+     * @param listener       listener that before/aftre method callbacks will be called
+     * @param connectionInfo current connection information
+     * @param onNext         a callback that will be chained on "map()" right after the result of the method invocation
+     * @param onComplete     a callback that will be chained as the first doOnComplete on the result of the method invocation
+     * @return
+     * @throws Throwable
      */
     protected Object proceedExecution(Method method, Object target, Object[] args,
                                       ProxyExecutionListener listener, ConnectionInfo connectionInfo,
-                                      BiFunction<Object, MethodExecutionInfo, Object> onNext) throws Throwable {
+                                      BiFunction<Object, MethodExecutionInfo, Object> onNext,
+                                      Consumer<MethodExecutionInfo> onComplete) throws Throwable {
 
         if (PASS_THROUGH_METHODS.contains(method)) {
             try {
@@ -116,11 +128,18 @@ public abstract class CallbackSupport {
                         // set produced object as result
                         executionInfo.setResult(resultObj);
 
-                        // apply a function to flux chain right after original publisher operations
+                        // apply a function to flux-chain right after the original publisher operations
                         if (onNext != null) {
                             return onNext.apply(resultObj, executionInfo);
                         }
                         return resultObj;
+                    })
+                    .doOnComplete(() -> {
+                        // apply a consumer to flux-chain right after the original publisher operations
+                        // this is the first chained doOnComplete on the result publisher
+                        if (onComplete != null) {
+                            onComplete.accept(executionInfo);
+                        }
                     })
                     .doOnError(throwable -> {
                         executionInfo.setThrown(throwable);
@@ -145,14 +164,16 @@ public abstract class CallbackSupport {
 
 
         } else {
-
-            executionInfo.setProxyEventType(ProxyEventType.BEFORE_METHOD);
-            listener.onMethodExecution(executionInfo);
+            // for method that generates non-publisher, execution happens when it is invoked.
 
             String threadName = Thread.currentThread().getName();
             long threadId = Thread.currentThread().getId();
             executionInfo.setThreadName(threadName);
             executionInfo.setThreadId(threadId);
+
+            // invoke before method
+            executionInfo.setProxyEventType(ProxyEventType.BEFORE_METHOD);
+            listener.onMethodExecution(executionInfo);
 
             Instant startTime = this.clock.instant();
 

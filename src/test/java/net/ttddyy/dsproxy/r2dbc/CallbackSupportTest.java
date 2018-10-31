@@ -306,7 +306,7 @@ public class CallbackSupportTest {
 
         when(target.execute()).thenReturn(publisher);
 
-        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionInfo, null);
+        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionInfo, null, null);
 
         // verify method on target is invoked
         verify(target).execute();
@@ -370,7 +370,7 @@ public class CallbackSupportTest {
 
         when(target.execute()).thenReturn(publisher);
 
-        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionInfo, null);
+        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionInfo, null, null);
 
         // verify method on target is invoked
         verify(target).execute();
@@ -424,7 +424,7 @@ public class CallbackSupportTest {
 
         when(target.add("QUERY")).thenReturn(mockBatch);
 
-        Object result = this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionInfo, null);
+        Object result = this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionInfo, null, null);
 
         // verify method on target is invoked
         verify(target).add("QUERY");
@@ -472,7 +472,7 @@ public class CallbackSupportTest {
         when(target.add("QUERY")).thenThrow(exception);
 
         assertThrows(RuntimeException.class, () -> {
-            this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionInfo, null);
+            this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionInfo, null, null);
         });
 
         verify(target).add("QUERY");
@@ -525,19 +525,19 @@ public class CallbackSupportTest {
         Object result;
 
         // verify toString()
-        result = this.callbackSupport.proceedExecution(toStringMethod, target, null, listener, null, null);
+        result = this.callbackSupport.proceedExecution(toStringMethod, target, null, listener, null, null, null);
         assertEquals("MyStub-proxy [FOO]", result);
 
         // verify hashCode()
-        result = this.callbackSupport.proceedExecution(hashCodeMethod, target, null, listener, null, null);
+        result = this.callbackSupport.proceedExecution(hashCodeMethod, target, null, listener, null, null, null);
         assertEquals(target.hashCode(), result);
 
         // verify equals() with null
-        result = this.callbackSupport.proceedExecution(equalsMethod, target, new Object[]{null}, listener, null, null);
+        result = this.callbackSupport.proceedExecution(equalsMethod, target, new Object[]{null}, listener, null, null, null);
         assertThat(result).isEqualTo(false);
 
         // verify equals() with target
-        result = this.callbackSupport.proceedExecution(equalsMethod, target, new Object[]{target}, listener, null, null);
+        result = this.callbackSupport.proceedExecution(equalsMethod, target, new Object[]{target}, listener, null, null, null);
         assertThat(result).isEqualTo(true);
     }
 

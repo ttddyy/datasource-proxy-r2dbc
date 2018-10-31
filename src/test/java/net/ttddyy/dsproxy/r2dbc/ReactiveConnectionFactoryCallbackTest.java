@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,6 +77,7 @@ public class ReactiveConnectionFactoryCallbackTest {
         ConnectionInfo connectionInfo = afterMethod.getConnectionInfo();
         assertNotNull(connectionInfo);
         assertEquals(connectionId, connectionInfo.getConnectionId());
+        assertFalse(connectionInfo.isClosed());
 
         assertSame(connectionFactory, afterMethod.getTarget());
         assertSame(originalConnection, afterMethod.getResult());

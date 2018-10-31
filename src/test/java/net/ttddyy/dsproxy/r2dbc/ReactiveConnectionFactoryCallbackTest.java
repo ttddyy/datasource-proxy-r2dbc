@@ -5,6 +5,8 @@ import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryMetadata;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionIdManager;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
+import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.springframework.util.ReflectionUtils;
@@ -14,6 +16,8 @@ import reactor.test.StepVerifier;
 import java.lang.reflect.Method;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -32,24 +36,27 @@ public class ReactiveConnectionFactoryCallbackTest {
     void createConnection() throws Throwable {
 
         ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
-        Connection mockConnection = mock(Connection.class);
-        Connection anotherMockConnection = mock(Connection.class);
+        Connection originalConnection = mock(Connection.class);
+        Connection mockedConnection = mock(Connection.class);
         ConnectionIdManager idManager = mock(ConnectionIdManager.class);
         ProxyFactory proxyFactory = mock(ProxyFactory.class);
 
-        String connectionId = "100";
-        ConnectionInfo connectionInfo = new ConnectionInfo();
-        connectionInfo.setConnectionId(connectionId);
-
-        // mock where it creates proxied connection
-        when(proxyFactory.createConnection(any(Connection.class), any(ConnectionInfo.class))).thenReturn(anotherMockConnection);
+        LastExecutionAwareListener listener = new LastExecutionAwareListener();
 
         // mock call to original ConnectionFactory#create()
-        doReturn(Mono.just(mockConnection)).when(connectionFactory).create();
+        doReturn(Mono.just(originalConnection)).when(connectionFactory).create();
+
+        String connectionId = "100";
+        when(idManager.getId(originalConnection)).thenReturn(connectionId);
+
+        // mock where it creates proxied connection
+        when(proxyFactory.createConnection(any(Connection.class), any(ConnectionInfo.class))).thenReturn(mockedConnection);
+
 
         ProxyConfig proxyConfig = new ProxyConfig();
         proxyConfig.setConnectionIdManager(idManager);
         proxyConfig.setProxyFactory(proxyFactory);
+        proxyConfig.addListener(listener);
 
         ReactiveConnectionFactoryCallback callback = new ReactiveConnectionFactoryCallback(connectionFactory, proxyConfig);
 
@@ -60,11 +67,18 @@ public class ReactiveConnectionFactoryCallbackTest {
         StepVerifier.create((Publisher<?>) result)
                 .expectSubscription()
                 .assertNext(object -> {
-
-                    assertSame(anotherMockConnection, object);
+                    assertSame(mockedConnection, object);
                 })
                 .verifyComplete();
 
+        MethodExecutionInfo afterMethod = listener.getAfterMethodExecutionInfo();
+        assertNotNull(afterMethod);
+        ConnectionInfo connectionInfo = afterMethod.getConnectionInfo();
+        assertNotNull(connectionInfo);
+        assertEquals(connectionId, connectionInfo.getConnectionId());
+
+        assertSame(connectionFactory, afterMethod.getTarget());
+        assertSame(originalConnection, afterMethod.getResult());
     }
 
     @Test

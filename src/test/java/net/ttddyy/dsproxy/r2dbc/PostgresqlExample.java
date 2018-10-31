@@ -21,6 +21,7 @@ import io.r2dbc.client.R2dbc;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
+import io.r2dbc.spi.Result;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -67,6 +68,13 @@ final class PostgresqlExample implements Example<String> {
                                 execInfo.map(methodExecutionFormatter::format)
                                         .doOnNext(System.out::println)
                                         .subscribe())
+                        .onEachQueryResult(result -> {
+                            result.doOnNext(executionInfo -> {
+                                int currentResultCount = executionInfo.getCurrentResultCount();
+                                Result currentResult = executionInfo.getCurrentResult();
+                                System.out.println("RESULT_NO=" + currentResultCount + " RESULT=" + currentResult);
+                            }).subscribe();
+                        })
                         .onAfterQuery(execInfo ->
                                 execInfo.map(queryExecutionFormatter::format)
                                         .doOnNext(System.out::println)

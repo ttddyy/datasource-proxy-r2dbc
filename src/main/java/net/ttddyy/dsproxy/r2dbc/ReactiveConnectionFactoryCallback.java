@@ -3,11 +3,10 @@ package net.ttddyy.dsproxy.r2dbc;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
-import org.reactivestreams.Publisher;
-import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
+import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 
 import java.lang.reflect.Method;
+import java.util.function.BiFunction;
 
 /**
  * Proxy callback for {@link ConnectionFactory}.
@@ -28,21 +27,27 @@ public class ReactiveConnectionFactoryCallback extends CallbackSupport {
 
         String methodName = method.getName();
 
-        Object result = proceedExecution(method, this.connectionFactory, args, this.proxyConfig.getListeners(), null);
+        BiFunction<Object, MethodExecutionInfo, Object> onNext = null;
         if ("create".equals(methodName)) {
 
-            // Since "proceedExecution()" has specially handled "ConnectionFactory#create", unwrap
-            // the returned Tuple2, and return proxied connection.
-            return Mono.empty()
-                    .concatWith((Publisher) result)
-                    .map(resultTuple -> {
-                        Tuple2 t2 = ((Tuple2) resultTuple);
-                        Connection connection = (Connection) t2.getT1();
-                        ConnectionInfo connectionInfo = (ConnectionInfo) t2.getT2();
-                        return proxyConfig.getProxyFactory().createConnection(connection, connectionInfo);
-                    });
+            // callback for creating connection proxy
+            onNext = (resultObj, executionInfo) -> {
+                executionInfo.setResult(resultObj);
+
+                Connection connection = (Connection) resultObj;  // original connection
+                String connectionId = this.proxyConfig.getConnectionIdManager().getId(connection);
+
+                ConnectionInfo connectionInfo = new ConnectionInfo();
+                connectionInfo.setConnectionId(connectionId);
+
+                executionInfo.setConnectionInfo(connectionInfo);
+
+                return proxyConfig.getProxyFactory().createConnection(connection, connectionInfo);
+            };
+
         }
 
+        Object result = proceedExecution(method, this.connectionFactory, args, this.proxyConfig.getListeners(), null, onNext);
         return result;
     }
 

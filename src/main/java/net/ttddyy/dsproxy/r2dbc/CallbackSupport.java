@@ -1,7 +1,5 @@
 package net.ttddyy.dsproxy.r2dbc;
 
-import io.r2dbc.spi.Connection;
-import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Result;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
@@ -10,7 +8,6 @@ import net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
-import reactor.util.function.Tuples;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -21,6 +18,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -29,13 +27,10 @@ import static java.util.stream.Collectors.toSet;
  */
 public abstract class CallbackSupport {
 
-    private static final Method CONNECTION_FACTORY_CREATE_METHOD;
     private static final Set<Method> PASS_THROUGH_METHODS;
 
     static {
         try {
-            CONNECTION_FACTORY_CREATE_METHOD = ConnectionFactory.class.getMethod("create");
-
             Method objectToStringMethod = Object.class.getMethod("toString");
             PASS_THROUGH_METHODS = Arrays.stream(Object.class.getMethods())
                     .filter(method -> !objectToStringMethod.equals(method))
@@ -59,7 +54,8 @@ public abstract class CallbackSupport {
      * Augment method invocation and call method listener.
      */
     protected Object proceedExecution(Method method, Object target, Object[] args,
-                                      ProxyExecutionListener listener, ConnectionInfo connectionInfo) throws Throwable {
+                                      ProxyExecutionListener listener, ConnectionInfo connectionInfo,
+                                      BiFunction<Object, MethodExecutionInfo, Object> onNext) throws Throwable {
 
         if (PASS_THROUGH_METHODS.contains(method)) {
             try {
@@ -90,9 +86,6 @@ public abstract class CallbackSupport {
 
         Class<?> returnType = method.getReturnType();
 
-        // special handling for ConnectionFactory#create method
-        boolean isConnectionCreateMethod = CONNECTION_FACTORY_CREATE_METHOD.equals(method);
-
         if (Publisher.class.isAssignableFrom(returnType)) {
 
             Publisher<?> result;
@@ -120,23 +113,13 @@ public abstract class CallbackSupport {
                     .concatWith(result)
                     .map(resultObj -> {
 
+                        // set produced object as result
                         executionInfo.setResult(resultObj);
 
-                        // special handling for ConnectionFactory#create()
-                        // Since connection has created, call ConnectionIdManager to get connectionId.
-                        // Populate it for after method callback.
-                        // Also, return tuple to pass the generated connection id to the proxy logic.
-                        if (isConnectionCreateMethod) {
-                            Connection conn = (Connection) resultObj;
-                            String connId = this.proxyConfig.getConnectionIdManager().getId(conn);
-
-                            ConnectionInfo newConnectionInfo = new ConnectionInfo();
-                            newConnectionInfo.setConnectionId(connId);
-
-                            executionInfo.setConnectionInfo(newConnectionInfo);
-                            return Tuples.of(resultObj, newConnectionInfo);
+                        // apply a function to flux chain right after original publisher operations
+                        if (onNext != null) {
+                            return onNext.apply(resultObj, executionInfo);
                         }
-
                         return resultObj;
                     })
                     .doOnError(throwable -> {

@@ -1,10 +1,7 @@
 package net.ttddyy.dsproxy.r2dbc;
 
 import io.r2dbc.spi.Batch;
-import io.r2dbc.spi.Connection;
-import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Result;
-import net.ttddyy.dsproxy.r2dbc.core.ConnectionIdManager;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
@@ -21,7 +18,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
-import reactor.util.function.Tuple2;
 
 import java.lang.reflect.Method;
 import java.time.Clock;
@@ -37,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -311,7 +306,7 @@ public class CallbackSupportTest {
 
         when(target.execute()).thenReturn(publisher);
 
-        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionInfo);
+        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionInfo, null);
 
         // verify method on target is invoked
         verify(target).execute();
@@ -375,7 +370,7 @@ public class CallbackSupportTest {
 
         when(target.execute()).thenReturn(publisher);
 
-        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionInfo);
+        Object result = this.callbackSupport.proceedExecution(executeMethod, target, args, listener, connectionInfo, null);
 
         // verify method on target is invoked
         verify(target).execute();
@@ -429,7 +424,7 @@ public class CallbackSupportTest {
 
         when(target.add("QUERY")).thenReturn(mockBatch);
 
-        Object result = this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionInfo);
+        Object result = this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionInfo, null);
 
         // verify method on target is invoked
         verify(target).add("QUERY");
@@ -477,7 +472,7 @@ public class CallbackSupportTest {
         when(target.add("QUERY")).thenThrow(exception);
 
         assertThrows(RuntimeException.class, () -> {
-            this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionInfo);
+            this.callbackSupport.proceedExecution(addMethod, target, args, listener, connectionInfo, null);
         });
 
         verify(target).add("QUERY");
@@ -510,59 +505,6 @@ public class CallbackSupportTest {
         assertSame(exception, afterMethodExecution.getThrown());
     }
 
-    @SuppressWarnings("unchecked")
-    @Test
-    void proceedExecutionWithConnectionFactoryCreateMethod() throws Throwable {
-
-        // target method returns Producer
-        Method createMethod = ReflectionUtils.findMethod(ConnectionFactory.class, "create");
-        ConnectionFactory target = mock(ConnectionFactory.class);
-        Object[] args = new Object[]{};
-        LastExecutionAwareListener listener = new LastExecutionAwareListener();
-        String connectionId = "conn-id";
-        ConnectionInfo connectionInfo = new ConnectionInfo();
-
-        // produce single result in order to trigger StepVerifier#assertNext.
-        Connection mockConnection = mock(Connection.class);
-        Publisher<? extends Connection> publisher = Mono.just(mockConnection);
-        doReturn(publisher).when(target).create();
-
-        ConnectionIdManager connectionIdManager = mock(ConnectionIdManager.class);
-        when(connectionIdManager.getId(mockConnection)).thenReturn(connectionId);
-        when(this.proxyConfig.getConnectionIdManager()).thenReturn(connectionIdManager);
-
-
-        Object result = this.callbackSupport.proceedExecution(createMethod, target, args, listener, null);
-
-        // verify method on target is invoked
-        verify(target).create();
-
-        StepVerifier.create((Publisher<Tuple2<Connection, ConnectionInfo>>) result)
-                .expectSubscription()
-                .assertNext(tuple2 -> {
-                    // in middle of chain.
-                    // at this point, beforeMethod has already called and special logic for
-                    // "ConnectionFactory#create" has performed.
-                    assertSame(mockConnection, tuple2.getT1());
-                    // new ConnectionInfo is created
-                    assertEquals(connectionId, tuple2.getT2().getConnectionId());
-
-                    MethodExecutionInfo beforeMethod = listener.getBeforeMethodExecutionInfo();
-                    assertNotNull(beforeMethod);
-                    assertNull(listener.getAfterMethodExecutionInfo());
-
-                    assertEquals(ProxyEventType.BEFORE_METHOD, beforeMethod.getProxyEventType());
-                })
-                .expectComplete()
-                .verify();
-
-        MethodExecutionInfo afterMethodExecution = listener.getAfterMethodExecutionInfo();
-        assertEquals(connectionId, afterMethodExecution.getConnectionInfo().getConnectionId());
-        assertSame(target, afterMethodExecution.getTarget());
-        assertSame(mockConnection, afterMethodExecution.getResult());
-
-    }
-
     @Test
     void proceedExecutionWithToString_HashCode_Equals_Methods() throws Throwable {
 
@@ -583,19 +525,19 @@ public class CallbackSupportTest {
         Object result;
 
         // verify toString()
-        result = this.callbackSupport.proceedExecution(toStringMethod, target, null, listener, null);
+        result = this.callbackSupport.proceedExecution(toStringMethod, target, null, listener, null, null);
         assertEquals("MyStub-proxy [FOO]", result);
 
         // verify hashCode()
-        result = this.callbackSupport.proceedExecution(hashCodeMethod, target, null, listener, null);
+        result = this.callbackSupport.proceedExecution(hashCodeMethod, target, null, listener, null, null);
         assertEquals(target.hashCode(), result);
 
         // verify equals() with null
-        result = this.callbackSupport.proceedExecution(equalsMethod, target, new Object[]{null}, listener, null);
+        result = this.callbackSupport.proceedExecution(equalsMethod, target, new Object[]{null}, listener, null, null);
         assertThat(result).isEqualTo(false);
 
         // verify equals() with target
-        result = this.callbackSupport.proceedExecution(equalsMethod, target, new Object[]{target}, listener, null);
+        result = this.callbackSupport.proceedExecution(equalsMethod, target, new Object[]{target}, listener, null, null);
         assertThat(result).isEqualTo(true);
     }
 

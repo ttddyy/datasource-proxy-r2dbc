@@ -54,14 +54,14 @@
 
     <!-- Plugin versions -->
     <compiler.version>3.8.0</compiler.version>
-    <surefire.version>2.22.0</surefire.version>
+    <surefire.version>2.22.1</surefire.version>
     <source.version>3.0.1</source.version>
     <javadoc.version>3.0.1</javadoc.version>
     <release.version>2.5.3</release.version>
 
     <!-- Main dependency versions -->
     <r2dbc-spi.version>1.0.0.BUILD-SNAPSHOT</r2dbc-spi.version>
-    <reactor.version>Californium-SR1</reactor.version>
+    <reactor.version>Californium-SR2</reactor.version>
 
     <!-- Test dependency versions -->
     <r2dbc-postgresql.version>1.0.0.BUILD-SNAPSHOT</r2dbc-postgresql.version>
@@ -72,7 +72,7 @@
     <assertj.version>3.11.1</assertj.version>
     <logback.versino>1.2.3</logback.versino>
     <testcontainers.version>1.9.1</testcontainers.version>
-    <spring-boot.version>2.0.6.RELEASE</spring-boot.version>
+    <spring-boot.version>2.1.0.RELEASE</spring-boot.version>
     <postgresql.version>42.2.5</postgresql.version>
   </properties>
 

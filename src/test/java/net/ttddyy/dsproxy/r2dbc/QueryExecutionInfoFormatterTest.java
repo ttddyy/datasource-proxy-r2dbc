@@ -44,7 +44,8 @@ public class QueryExecutionInfoFormatterTest {
         QueryExecutionInfoFormatter formatter = QueryExecutionInfoFormatter.showAll();
 
         String result = formatter.format(execInfo);
-        assertEquals("Thread:my-thread(99) Connection:conn-id Success:True Time:35 " +
+        assertEquals("Thread:my-thread(99) Connection:conn-id " +
+                "Transaction:{Create:0 Rollback:0 Commit:0} Success:True Time:35 " +
                 "Type:Batch BatchSize:20 BindingsSize:10 " +
                 "Query:[\"SELECT A\",\"SELECT B\"] Bindings:[]", result);
 
@@ -102,21 +103,24 @@ public class QueryExecutionInfoFormatterTest {
         // with index bindings
         execInfo.setQueries(Collections.singletonList(queryWithIndexBindings));
         result = formatter.format(execInfo);
-        assertEquals("Thread:my-thread(99) Connection:conn-id Success:True Time:35" +
+        assertEquals("Thread:my-thread(99) Connection:conn-id" +
+                " Transaction:{Create:0 Rollback:0 Commit:0} Success:True Time:35" +
                 " Type:Statement BatchSize:20 BindingsSize:10 Query:[\"SELECT WITH-INDEX\"]" +
                 " Bindings:[(100,101,102),(200,null(String),202)]", result);
 
         // with identifier bindings
         execInfo.setQueries(Collections.singletonList(queryWithIdBindings));
         result = formatter.format(execInfo);
-        assertEquals("Thread:my-thread(99) Connection:conn-id Success:True Time:35" +
+        assertEquals("Thread:my-thread(99) Connection:conn-id" +
+                " Transaction:{Create:0 Rollback:0 Commit:0} Success:True Time:35" +
                 " Type:Statement BatchSize:20 BindingsSize:10 Query:[\"SELECT WITH-IDENTIFIER\"]" +
                 " Bindings:[($0=100,$1=101,$2=102),($0=200,$1=null(Integer),$2=202)]", result);
 
         // with no bindings
         execInfo.setQueries(Collections.singletonList(queryWithNoBindings));
         result = formatter.format(execInfo);
-        assertEquals("Thread:my-thread(99) Connection:conn-id Success:True Time:35" +
+        assertEquals("Thread:my-thread(99) Connection:conn-id" +
+                " Transaction:{Create:0 Rollback:0 Commit:0} Success:True Time:35" +
                 " Type:Statement BatchSize:20 BindingsSize:10 Query:[\"SELECT NO-BINDINGS\"]" +
                 " Bindings:[]", result);
 
@@ -149,6 +153,27 @@ public class QueryExecutionInfoFormatterTest {
 
         String str = formatter.format(execInfo);
         assertEquals("Connection:99", str);
+    }
+
+    @Test
+    void showTransactionInfo() {
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.showTransaction();
+
+        // 1 transaction, 2 rollback, 3 commit
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        connectionInfo.incrementTransactionCount();
+        connectionInfo.incrementRollbackCount();
+        connectionInfo.incrementRollbackCount();
+        connectionInfo.incrementCommitCount();
+        connectionInfo.incrementCommitCount();
+        connectionInfo.incrementCommitCount();
+
+        QueryExecutionInfo execInfo = new QueryExecutionInfo();
+        execInfo.setConnectionInfo(connectionInfo);
+
+        String str = formatter.format(execInfo);
+        assertEquals("Transaction:{Create:1 Rollback:2 Commit:3}", str);
     }
 
     @Test
@@ -359,8 +384,8 @@ public class QueryExecutionInfoFormatterTest {
 
         String result = formatter.format(queryExecutionInfo);
         assertThat(result)
-                .containsSubsequence("Thread", "Connection", "Success", "Time", "Type", "BatchSize",
-                        "BindingsSize", "Query", "Bindings");
+                .containsSubsequence("Thread", "Connection", "Transaction", "Success", "Time", "Type",
+                        "BatchSize", "BindingsSize", "Query", "Bindings");
     }
 
     @Test
@@ -391,6 +416,19 @@ public class QueryExecutionInfoFormatterTest {
 
         String result = formatter.format(new QueryExecutionInfo());
         assertEquals("my-connection", result);
+    }
+
+    @Test
+    void showTransactionWithConsumer() {
+        QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+        formatter.showTransaction(((executionInfo, sb) -> sb.append("my-transaction")));
+
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        QueryExecutionInfo queryExecutionInfo = new QueryExecutionInfo();
+        queryExecutionInfo.setConnectionInfo(connectionInfo);
+
+        String result = formatter.format(new QueryExecutionInfo());
+        assertEquals("my-transaction", result);
     }
 
     @Test

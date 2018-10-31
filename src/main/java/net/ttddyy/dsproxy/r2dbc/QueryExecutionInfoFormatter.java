@@ -3,6 +3,7 @@ package net.ttddyy.dsproxy.r2dbc;
 import net.ttddyy.dsproxy.r2dbc.core.Binding;
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue.NullBindingValue;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
@@ -41,6 +42,21 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
     private BiConsumer<QueryExecutionInfo, StringBuilder> onConnection = (executionInfo, sb) -> {
         sb.append("Connection:");
         sb.append(executionInfo.getConnectionInfo().getConnectionId());
+    };
+
+    /**
+     * Default implementation for formatting transaction releated info.
+     */
+    private BiConsumer<QueryExecutionInfo, StringBuilder> onTransactionInfo = (executionInfo, sb) -> {
+        sb.append("Transaction:");
+        ConnectionInfo connectionInfo = executionInfo.getConnectionInfo();
+        sb.append("{Create:");
+        sb.append(connectionInfo.getTransactionCount());
+        sb.append(" Rollback:");
+        sb.append(connectionInfo.getRollbackCount());
+        sb.append(" Commit:");
+        sb.append(connectionInfo.getCommitCount());
+        sb.append("}");
     };
 
     /**
@@ -196,6 +212,7 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
         QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
         formatter.addConsumer(formatter.onThread);
         formatter.addConsumer(formatter.onConnection);
+        formatter.addConsumer(formatter.onTransactionInfo);
         formatter.addConsumer(formatter.onSuccess);
         formatter.addConsumer(formatter.onTime);
         formatter.addConsumer(formatter.onType);
@@ -269,6 +286,16 @@ public class QueryExecutionInfoFormatter implements Function<QueryExecutionInfo,
     public QueryExecutionInfoFormatter showConnection(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
         this.onConnection = consumer;
         return showConnection();
+    }
+
+    public QueryExecutionInfoFormatter showTransaction() {
+        this.consumers.add(this.onTransactionInfo);
+        return this;
+    }
+
+    public QueryExecutionInfoFormatter showTransaction(BiConsumer<QueryExecutionInfo, StringBuilder> consumer) {
+        this.onTransactionInfo = consumer;
+        return showTransaction();
     }
 
     public QueryExecutionInfoFormatter showSuccess() {

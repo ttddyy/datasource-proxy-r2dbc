@@ -128,6 +128,9 @@ Any logic can be performed on callbacks.
 Thus, you can write own logic that performs anything, such as audit logging, sending
 notifications, calling external system, etc.
 
+----
+
+# API
 
 ## Listener API
 
@@ -159,6 +162,52 @@ triggers method callbacks - `beforeMethod()` and `afterMethod()`.
 `Batch#execute()` and `Statement#execute()` triggers query callbacks - `beforeQuery()`
 and `afterQuery()`.(Specifically when returned result publisher is subscribed.)  
 `eachQueryResult()` is called on each query result while being subscribed.
+
+## QueryExecutionInfoFormatter
+This class converts `QueryExecutionInfo` to `String`. Mainly used for preparing log entries.  
+Internally, this class has multiple consumers for `QueryExecutionInfo` and loop through them to
+populate the output `StringBuilder`.  
+
+This class implements `Function<QueryExecutionInfo,String>` and can be used in functional style as well.
+
+```java
+// convert all info
+QueryExecutionInfoFormatter formatter = QueryExecutionInfoFormatter#showAll();
+String str = formatter.format(queryExecutionInfo);
+
+// customize conversion
+QueryExecutionInfoFormatter formatter = new QueryExecutionInfoFormatter();
+formatter.addConsumer((execInfo, sb) -> {
+  sb.append("MY-QUERY-EXECUTION="); // add prefix
+};
+formatter.newLine();  // new line
+formatter.showSuccess();
+formatter.showConnection((execInfo, sb)  -> {
+    // custom conversion
+    sb.append("MY-ID=" + executionInfo.getConnectionInfo().getConnectionId());
+});
+formatter.showQuery();
+
+// convert it
+String str = formatter.format(queryExecutionInfo);
+```
+
+## MethodExecutionInfoFormatter
+
+Similar to `QueryExecutionInfoFormatter`, `MethodExecutionInfoFormatter` converts `MethodExecutionInfo` to
+`String`.
+
+```java
+MethodExecutionInfoFormatter formatter = MethodExecutionInfoFormatter.withDefault();
+
+ProxyConnectionFactoryBuilder.create(connectionFactory)
+  .onAfterMethod(execInfo ->
+     execInfo.map(methodExecutionFormatter::format)  // convert
+       .doOnNext(System.out::println)  // print out to sysout
+       .subscribe())
+  .build();
+```
+
 
 ----
 

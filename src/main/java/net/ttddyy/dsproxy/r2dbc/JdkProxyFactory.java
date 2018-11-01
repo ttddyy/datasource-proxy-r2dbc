@@ -5,6 +5,7 @@ import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.ProxyObject;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -27,28 +28,28 @@ public class JdkProxyFactory implements ProxyFactory {
     @Override
     public ConnectionFactory createConnectionFactory(ConnectionFactory connectionFactory) {
         return (ConnectionFactory) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                new Class[]{ConnectionFactory.class},
+                new Class[]{ConnectionFactory.class, ProxyObject.class},
                 new ConnectionFactoryInvocationHandler(connectionFactory, this.proxyConfig));
     }
 
     @Override
     public Connection createConnection(Connection connection, ConnectionInfo connectionInfo) {
         return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                new Class[] { Connection.class },
+                new Class[]{Connection.class, ProxyObject.class},
                 new ConnectionInvocationHandler(connection, connectionInfo, this.proxyConfig));
     }
 
     @Override
     public Batch<?> createBatch(Batch<?> batch, ConnectionInfo connectionInfo) {
         return (Batch<?>) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                new Class[] { Batch.class },
+                new Class[]{Batch.class, ProxyObject.class},
                 new BatchInvocationHandler(batch, connectionInfo, this.proxyConfig));
     }
 
     @Override
     public Statement<?> createStatement(Statement<?> statement, String query, ConnectionInfo connectionInfo) {
         return (Statement<?>) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                new Class[] { Statement.class },
+                new Class[]{Statement.class, ProxyObject.class},
                 new StatementInvocationHandler(statement, query, connectionInfo, this.proxyConfig));
     }
 

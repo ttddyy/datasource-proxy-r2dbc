@@ -7,6 +7,7 @@ import net.ttddyy.dsproxy.r2dbc.core.ConnectionIdManager;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.ProxyObject;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.springframework.util.ReflectionUtils;
@@ -32,6 +33,7 @@ public class ReactiveConnectionFactoryCallbackTest {
 
     private static Method CREATE_METHOD = ReflectionUtils.findMethod(ConnectionFactory.class, "create");
     private static Method GET_METADATA_METHOD = ReflectionUtils.findMethod(ConnectionFactory.class, "getMetadata");
+    private static Method GET_TARGET_METHOD = ReflectionUtils.findMethod(ProxyObject.class, "getTarget");
 
     @Test
     void createConnection() throws Throwable {
@@ -98,6 +100,17 @@ public class ReactiveConnectionFactoryCallbackTest {
 
         assertSame(metadata, result);
 
+    }
+
+    @Test
+    void getTarget() throws Throwable {
+        ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+        ProxyConfig proxyConfig = new ProxyConfig();
+
+        ReactiveConnectionFactoryCallback callback = new ReactiveConnectionFactoryCallback(connectionFactory, proxyConfig);
+
+        Object result = callback.invoke(null, GET_TARGET_METHOD, null);
+        assertSame(connectionFactory, result);
     }
 
 }

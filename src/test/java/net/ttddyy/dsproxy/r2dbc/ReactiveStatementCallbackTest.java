@@ -6,6 +6,7 @@ import net.ttddyy.dsproxy.r2dbc.core.BindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.Bindings;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
+import net.ttddyy.dsproxy.r2dbc.core.ProxyObject;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ public class ReactiveStatementCallbackTest {
     private static Method BIND_BY_ID_METHOD = ReflectionUtils.findMethod(Statement.class, "bind", Object.class, Object.class);
     private static Method BIND_NULL_BY_INDEX_METHOD = ReflectionUtils.findMethod(Statement.class, "bindNull", int.class, Class.class);
     private static Method BIND_NULL_BY_ID_METHOD = ReflectionUtils.findMethod(Statement.class, "bindNull", Object.class, Class.class);
+    private static Method GET_TARGET_METHOD = ReflectionUtils.findMethod(ProxyObject.class, "getTarget");
 
     @Test
     void add() throws Throwable {
@@ -230,6 +232,19 @@ public class ReactiveStatementCallbackTest {
                 .extracting(BindingValue::getValue)
                 .isEqualTo(200);
 
+    }
+
+    @Test
+    void getTarget() throws Throwable {
+        Statement statement = mock(Statement.class);
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        ProxyConfig proxyConfig = new ProxyConfig();
+        String query = "QUERY";
+
+        ReactiveStatementCallback callback = new ReactiveStatementCallback(statement, query, connectionInfo, proxyConfig);
+
+        Object result = callback.invoke(null, GET_TARGET_METHOD, null);
+        assertSame(statement, result);
     }
 
 }

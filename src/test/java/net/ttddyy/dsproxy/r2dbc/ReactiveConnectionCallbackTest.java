@@ -6,6 +6,7 @@ import io.r2dbc.spi.Statement;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.ProxyObject;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.springframework.util.ReflectionUtils;
@@ -31,6 +32,7 @@ public class ReactiveConnectionCallbackTest {
     private static Method COMMIT_TRANSACTION_METHOD = ReflectionUtils.findMethod(Connection.class, "commitTransaction");
     private static Method ROLLBACK_TRANSACTION_METHOD = ReflectionUtils.findMethod(Connection.class, "rollbackTransaction");
     private static Method CLOSE_METHOD = ReflectionUtils.findMethod(Connection.class, "close");
+    private static Method GET_TARGET_METHOD = ReflectionUtils.findMethod(ProxyObject.class, "getTarget");
 
     @Test
     void createBatch() throws Throwable {
@@ -195,5 +197,16 @@ public class ReactiveConnectionCallbackTest {
         assertTrue(connectionInfo.isClosed());
     }
 
+    @Test
+    void getTarget() throws Throwable {
+        Connection connection = mock(Connection.class);
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        ProxyConfig proxyConfig = new ProxyConfig();
+
+        ReactiveConnectionCallback callback = new ReactiveConnectionCallback(connection, connectionInfo, proxyConfig);
+
+        Object result = callback.invoke(null, GET_TARGET_METHOD, null);
+        assertSame(connection, result);
+    }
 
 }

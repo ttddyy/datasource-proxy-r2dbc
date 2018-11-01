@@ -36,6 +36,10 @@ public class ReactiveBatchCallback extends CallbackSupport {
 
         String methodName = method.getName();
 
+        if ("getTarget".equals(methodName)) {
+            return this.batch;
+        }
+
         Object result = proceedExecution(method, this.batch, args, this.proxyConfig.getListeners(), this.connectionInfo, null, null);
 
         if ("add".equals(methodName)) {

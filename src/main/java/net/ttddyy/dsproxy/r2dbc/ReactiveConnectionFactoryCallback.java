@@ -24,8 +24,11 @@ public class ReactiveConnectionFactoryCallback extends CallbackSupport {
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
-
         String methodName = method.getName();
+
+        if ("getTarget".equals(methodName)) {
+            return this.connectionFactory;
+        }
 
         BiFunction<Object, MethodExecutionInfo, Object> onNext = null;
         if ("create".equals(methodName)) {

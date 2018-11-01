@@ -30,6 +30,10 @@ public class ReactiveConnectionCallback extends CallbackSupport {
 
         String methodName = method.getName();
 
+        if ("getTarget".equals(methodName)) {
+            return this.connection;
+        }
+
         BiFunction<Object, MethodExecutionInfo, Object> onNext = null;
         Consumer<MethodExecutionInfo> onComplete = null;
 

@@ -5,6 +5,7 @@ import io.r2dbc.spi.Result;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
+import net.ttddyy.dsproxy.r2dbc.core.ProxyObject;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import reactor.test.StepVerifier;
 import java.lang.reflect.Method;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +28,7 @@ public class ReactiveBatchCallbackTest {
 
     private static Method ADD_METHOD = ReflectionUtils.findMethod(Batch.class, "add", String.class);
     private static Method EXECUTE_METHOD = ReflectionUtils.findMethod(Batch.class, "execute");
+    private static Method GET_TARGET_METHOD = ReflectionUtils.findMethod(ProxyObject.class, "getTarget");
 
     @Test
     void batchOperation() throws Throwable {
@@ -76,4 +79,17 @@ public class ReactiveBatchCallbackTest {
                 .containsExactly("QUERY-1", "QUERY-2");
 
     }
+
+    @Test
+    void getTarget() throws Throwable {
+        Batch batch = mock(Batch.class);
+        ConnectionInfo connectionInfo = new ConnectionInfo();
+        ProxyConfig proxyConfig = new ProxyConfig();
+
+        ReactiveBatchCallback callback = new ReactiveBatchCallback(batch, connectionInfo, proxyConfig);
+
+        Object result = callback.invoke(null, GET_TARGET_METHOD, null);
+        assertSame(batch, result);
+    }
+
 }

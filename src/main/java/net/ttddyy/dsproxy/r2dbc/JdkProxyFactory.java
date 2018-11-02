@@ -4,6 +4,7 @@ import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionHolder;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyObject;
 
@@ -35,21 +36,21 @@ public class JdkProxyFactory implements ProxyFactory {
     @Override
     public Connection createConnection(Connection connection, ConnectionInfo connectionInfo) {
         return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                new Class[]{Connection.class, ProxyObject.class},
+                new Class[]{Connection.class, ProxyObject.class, ConnectionHolder.class},
                 new ConnectionInvocationHandler(connection, connectionInfo, this.proxyConfig));
     }
 
     @Override
     public Batch<?> createBatch(Batch<?> batch, ConnectionInfo connectionInfo) {
         return (Batch<?>) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                new Class[]{Batch.class, ProxyObject.class},
+                new Class[]{Batch.class, ProxyObject.class, ConnectionHolder.class},
                 new BatchInvocationHandler(batch, connectionInfo, this.proxyConfig));
     }
 
     @Override
     public Statement<?> createStatement(Statement<?> statement, String query, ConnectionInfo connectionInfo) {
         return (Statement<?>) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                new Class[]{Statement.class, ProxyObject.class},
+                new Class[]{Statement.class, ProxyObject.class, ConnectionHolder.class},
                 new StatementInvocationHandler(statement, query, connectionInfo, this.proxyConfig));
     }
 

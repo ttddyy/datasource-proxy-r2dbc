@@ -4,6 +4,7 @@ import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Statement;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionHolder;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,18 +44,22 @@ public class JdkProxyFactoryTest {
         result = this.proxyFactory.createConnectionFactory(connectionFactory);
         assertTrue(Proxy.isProxyClass(result.getClass()));
         assertThat(result).isInstanceOf(ProxyObject.class);
+        assertThat(result).isNotInstanceOf(ConnectionHolder.class);
 
         result = this.proxyFactory.createConnection(connection, connectionInfo);
         assertTrue(Proxy.isProxyClass(result.getClass()));
         assertThat(result).isInstanceOf(ProxyObject.class);
+        assertThat(result).isInstanceOf(ConnectionHolder.class);
 
         result = this.proxyFactory.createBatch(batch, connectionInfo);
         assertTrue(Proxy.isProxyClass(result.getClass()));
         assertThat(result).isInstanceOf(ProxyObject.class);
+        assertThat(result).isInstanceOf(ConnectionHolder.class);
 
         result = this.proxyFactory.createStatement(statement, query, connectionInfo);
         assertTrue(Proxy.isProxyClass(result.getClass()));
         assertThat(result).isInstanceOf(ProxyObject.class);
+        assertThat(result).isInstanceOf(ConnectionHolder.class);
     }
 
     @Test

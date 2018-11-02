@@ -38,6 +38,10 @@ public class ReactiveBatchCallback extends CallbackSupport {
 
         if ("getTarget".equals(methodName)) {
             return this.batch;
+        } else if ("getProxyConnection".equals(methodName)) {
+            return this.connectionInfo.getProxyConnection();
+        } else if ("getOriginalConnection".equals(methodName)) {
+            return this.connectionInfo.getOriginalConnection();
         }
 
         Object result = proceedExecution(method, this.batch, args, this.proxyConfig.getListeners(), this.connectionInfo, null, null);

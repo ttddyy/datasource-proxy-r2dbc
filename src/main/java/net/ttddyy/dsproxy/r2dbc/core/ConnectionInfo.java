@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ConnectionInfo {
 
+    private Connection proxyConnection;
     private String connectionId;
     private AtomicBoolean isClosed = new AtomicBoolean();
     private AtomicInteger transactionCount = new AtomicInteger();
@@ -20,6 +21,21 @@ public class ConnectionInfo {
     private AtomicInteger rollbackCount = new AtomicInteger();
 
     // TODO: may keep transaction isolation level
+
+    public Connection getOriginalConnection() {
+        if (this.proxyConnection == null) {
+            return null;
+        }
+        return (Connection) ((ProxyObject) this.proxyConnection).getTarget();
+    }
+
+    public Connection getProxyConnection() {
+        return this.proxyConnection;
+    }
+
+    public void setProxyConnection(Connection proxyConnection) {
+        this.proxyConnection = proxyConnection;
+    }
 
     public String getConnectionId() {
         return this.connectionId;

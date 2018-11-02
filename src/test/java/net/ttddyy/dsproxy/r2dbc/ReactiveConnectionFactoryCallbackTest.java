@@ -80,6 +80,7 @@ public class ReactiveConnectionFactoryCallbackTest {
         assertNotNull(connectionInfo);
         assertEquals(connectionId, connectionInfo.getConnectionId());
         assertFalse(connectionInfo.isClosed());
+        assertSame(mockedConnection, connectionInfo.getProxyConnection());
 
         assertSame(connectionFactory, afterMethod.getTarget());
         assertSame(originalConnection, afterMethod.getResult());

@@ -59,14 +59,14 @@ public abstract class CallbackSupport {
      * @param args           arguments for the method
      * @param listener       listener that before/aftre method callbacks will be called
      * @param connectionInfo current connection information
-     * @param onNext         a callback that will be chained on "map()" right after the result of the method invocation
+     * @param onMap          a callback that will be chained on "map()" right after the result of the method invocation
      * @param onComplete     a callback that will be chained as the first doOnComplete on the result of the method invocation
      * @return
      * @throws Throwable
      */
     protected Object proceedExecution(Method method, Object target, Object[] args,
                                       ProxyExecutionListener listener, ConnectionInfo connectionInfo,
-                                      BiFunction<Object, MethodExecutionInfo, Object> onNext,
+                                      BiFunction<Object, MethodExecutionInfo, Object> onMap,
                                       Consumer<MethodExecutionInfo> onComplete) throws Throwable {
 
         if (PASS_THROUGH_METHODS.contains(method)) {
@@ -129,8 +129,8 @@ public abstract class CallbackSupport {
                         executionInfo.setResult(resultObj);
 
                         // apply a function to flux-chain right after the original publisher operations
-                        if (onNext != null) {
-                            return onNext.apply(resultObj, executionInfo);
+                        if (onMap != null) {
+                            return onMap.apply(resultObj, executionInfo);
                         }
                         return resultObj;
                     })

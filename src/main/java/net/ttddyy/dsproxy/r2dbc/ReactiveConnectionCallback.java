@@ -7,7 +7,6 @@ import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 
 import java.lang.reflect.Method;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
@@ -34,7 +33,6 @@ public class ReactiveConnectionCallback extends CallbackSupport {
             return this.connection;
         }
 
-        BiFunction<Object, MethodExecutionInfo, Object> onNext = null;
         Consumer<MethodExecutionInfo> onComplete = null;
 
         // since these methods return Publisher<Void> pass the callback for doOnComplete().

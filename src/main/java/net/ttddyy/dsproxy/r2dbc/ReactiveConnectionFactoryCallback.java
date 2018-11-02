@@ -30,11 +30,11 @@ public class ReactiveConnectionFactoryCallback extends CallbackSupport {
             return this.connectionFactory;
         }
 
-        BiFunction<Object, MethodExecutionInfo, Object> onNext = null;
+        BiFunction<Object, MethodExecutionInfo, Object> onMap = null;
         if ("create".equals(methodName)) {
 
             // callback for creating connection proxy
-            onNext = (resultObj, executionInfo) -> {
+            onMap = (resultObj, executionInfo) -> {
                 executionInfo.setResult(resultObj);
 
                 Connection connection = (Connection) resultObj;  // original connection
@@ -56,7 +56,7 @@ public class ReactiveConnectionFactoryCallback extends CallbackSupport {
 
         }
 
-        Object result = proceedExecution(method, this.connectionFactory, args, this.proxyConfig.getListeners(), null, onNext, null);
+        Object result = proceedExecution(method, this.connectionFactory, args, this.proxyConfig.getListeners(), null, onMap, null);
         return result;
     }
 

@@ -256,6 +256,25 @@ datasource-proxy-r2dbc is developed on following versions.
 | 0.1-SNAPSHOT           | 1.0.0.BUILD-SNAPSHOT | Californium-SR2 |
 
 
+## Maven and Gradle
+
+*Maven*
+```xml
+<dependency>
+  <groupId>net.ttddyy</groupId>
+  <artifactId>datasource-proxy-r2dbc</artifactId>
+  <version>${latest-version}</version>
+</dependency>
+```
+
+*Gradle*
+```groovy
+compile "net.ttddyy:datasource-proxy-r2dbc:${latest-version}"
+```
+
+NOTE: `artifactId` may change in future.
+
+
 ----
 
 # Sample Configuration

@@ -43,13 +43,11 @@ public class ReactiveConnectionFactoryCallback extends CallbackSupport {
                 ConnectionInfo connectionInfo = new ConnectionInfo();
                 connectionInfo.setConnectionId(connectionId);
                 connectionInfo.setClosed(false);
+                connectionInfo.setOriginalConnection(connection);
 
                 executionInfo.setConnectionInfo(connectionInfo);
 
                 Connection proxyConnection = proxyConfig.getProxyFactory().createConnection(connection, connectionInfo);
-
-                // proxy connection is only available after this
-                connectionInfo.setProxyConnection(proxyConnection);
 
                 return proxyConnection;
             };

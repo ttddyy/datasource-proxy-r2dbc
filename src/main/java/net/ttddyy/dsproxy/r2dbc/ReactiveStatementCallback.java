@@ -47,8 +47,6 @@ public class ReactiveStatementCallback extends CallbackSupport {
 
         if ("getTarget".equals(methodName)) {
             return this.statement;
-        } else if ("getProxyConnection".equals(methodName)) {
-            return this.connectionInfo.getProxyConnection();
         } else if ("getOriginalConnection".equals(methodName)) {
             return this.connectionInfo.getOriginalConnection();
         }

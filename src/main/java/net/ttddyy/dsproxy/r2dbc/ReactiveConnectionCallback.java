@@ -31,11 +31,6 @@ public class ReactiveConnectionCallback extends CallbackSupport {
 
         if ("getTarget".equals(methodName)) {
             return this.connection;
-        } else if ("getProxyConnection".equals(methodName)) {
-            if (this.connectionInfo == null) {
-                return null;
-            }
-            return this.connectionInfo.getProxyConnection();
         } else if ("getOriginalConnection".equals(methodName)) {
             return this.connection;
         }

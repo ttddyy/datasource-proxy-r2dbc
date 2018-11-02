@@ -17,6 +17,4 @@ public interface ConnectionHolder {
 
     Connection getOriginalConnection();
 
-    Connection getProxyConnection();
-
 }

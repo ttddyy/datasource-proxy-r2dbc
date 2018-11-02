@@ -29,7 +29,7 @@ public class ProxyUtilsTest {
         ConnectionInfo connectionInfo = new ConnectionInfo();
 
         Connection proxyConnection = proxyConfig.getProxyFactory().createConnection(originalConnection, connectionInfo);
-        connectionInfo.setProxyConnection(proxyConnection);
+        connectionInfo.setOriginalConnection(originalConnection);
 
         Batch proxyBatch = proxyConfig.getProxyFactory().createBatch(originalBatch, connectionInfo);
         Statement proxyStatement = proxyConfig.getProxyFactory().createStatement(originalStatement, query, connectionInfo);

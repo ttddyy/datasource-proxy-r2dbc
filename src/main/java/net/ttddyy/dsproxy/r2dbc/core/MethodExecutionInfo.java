@@ -2,6 +2,8 @@ package net.ttddyy.dsproxy.r2dbc.core;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Copy of MethodExecutionContext from datasource-proxy and some modification.
@@ -21,7 +23,23 @@ public class MethodExecutionInfo {
     private String threadName;
     private long threadId;
     private ProxyEventType proxyEventType;
+    private Map<String, Object> customValues = new HashMap<>();
 
+    /**
+     * Store key/value pair.
+     *
+     * Mainly used for passing values between before and after listener callback.
+     *
+     * @param key key
+     * @param value value
+     */
+    public void addCustomValue(String key, Object value) {
+        this.customValues.put(key, value);
+    }
+
+    public <T> T getCustomValue(String key, Class<T> type) {
+        return type.cast(this.customValues.get(key));
+    }
 
     public Object getTarget() {
         return target;

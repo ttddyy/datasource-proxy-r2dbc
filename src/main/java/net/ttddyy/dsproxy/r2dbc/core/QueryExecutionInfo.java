@@ -5,7 +5,9 @@ import io.r2dbc.spi.Result;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Copy from datasource-proxy
@@ -31,8 +33,24 @@ public class QueryExecutionInfo {
     private ProxyEventType proxyEventType;
     private int currentResultCount;
     private Result currentResult;
-
+    private Map<String, Object> customValues = new HashMap<>();
     private List<QueryInfo> queries = new ArrayList<>();
+
+    /**
+     * Store key/value pair.
+     *
+     * Mainly used for passing values between before and after listener callback.
+     *
+     * @param key key
+     * @param value value
+     */
+    public void addCustomValue(String key, Object value) {
+        this.customValues.put(key, value);
+    }
+
+    public <T> T getCustomValue(String key, Class<T> type) {
+        return type.cast(this.customValues.get(key));
+    }
 
     public Method getMethod() {
         return method;

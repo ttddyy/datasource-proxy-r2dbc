@@ -3,7 +3,7 @@ package net.ttddyy.dsproxy.r2dbc;
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Result;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
-import net.ttddyy.dsproxy.r2dbc.core.LastExecutionAwareListener;
+import net.ttddyy.dsproxy.r2dbc.support.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyEventType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;

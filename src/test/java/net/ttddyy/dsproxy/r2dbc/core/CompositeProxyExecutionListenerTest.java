@@ -1,5 +1,6 @@
 package net.ttddyy.dsproxy.r2dbc.core;
 
+import net.ttddyy.dsproxy.r2dbc.support.LastExecutionAwareListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

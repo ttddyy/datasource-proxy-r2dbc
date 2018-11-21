@@ -8,13 +8,13 @@ Provide listeners that receive callbacks of query executions and method invocati
 
 Callbacks are:
 - Before/After query executions when `Batch#execute()` or `Statement#execute()` is called.
-- Each query result emitted by `Publisher<? extends Result>`.
 - Before/After any method calls on `ConnectionFactory`, `Connection`, `Batch` and `Statement`. 
+- (Each query result emitted by `Publisher<? extends Result>`.) (TBD)
 
 Here is sample use cases for listeners:
 - Query logging
 - Slow query detection
-- Method tracing
+- Tracing
 - Metrics
 - Assertion/Verification
   - Connection leak detection
@@ -99,6 +99,23 @@ connection open/close.
   8: Thread:34 Connection:1 Time:4  PostgresqlConnection#close()
 ```
 
+### Distributed Tracing
+
+Sample project: [Tracing with sleuth](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/tree/master/dsp-r2dbc-tracing-sleuth)
+
+* [TracingExecutionListener](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/blob/master/dsp-r2dbc-tracing-sleuth/src/main/java/net/ttddyy/TracingExecutionListener.java):
+ Tracing listener implementation using `LifeCycleExecutionlistener`.
+
+
+*Tracing*
+![Tracing](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/raw/master/dsp-r2dbc-tracing-sleuth/images/tracing-rollback.png)
+
+*Connection Span*
+![Connection Span](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/raw/master/dsp-r2dbc-tracing-sleuth/images/span-connection.png)
+
+*Query Span*
+![Query Span](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/raw/master/dsp-r2dbc-tracing-sleuth/images/span-batch-query.png)
+
 
 ### Metrics
 
@@ -127,6 +144,13 @@ connection in order to be in the same transaction.
 Any logic can be performed on callbacks.
 Thus, you can write own logic that performs anything, such as audit logging, sending
 notifications, calling external system, etc.
+
+## Samples
+
+Sample projects: [datasource-proxy-r2dbc-samples](https://github.com/ttddyy/datasource-proxy-r2dbc-samples)
+
+* [Tracing with Sleuth](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/tree/master/dsp-r2dbc-tracing-sleuth)
+  * [TracingExecutionListener](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/blob/master/dsp-r2dbc-tracing-sleuth/src/main/java/net/ttddyy/TracingExecutionListener.java) implementation 
 
 ----
 
@@ -162,6 +186,29 @@ triggers method callbacks - `beforeMethod()` and `afterMethod()`.
 `Batch#execute()` and `Statement#execute()` triggers query callbacks - `beforeQuery()`
 and `afterQuery()`.(Specifically when returned result publisher is subscribed.)  
 `eachQueryResult()` is called on each query result while being subscribed.
+
+
+### LifeCycleListener
+
+`LifeCycleListener` provides before/after methods for all methods defined on `ConnectionFactory`,
+`Connection`, `Batch`, and `Statement`, as well as query executions.
+
+For example, if you want know the creation of connection and close of it,
+
+```java
+public class ConnectionStartToEndListener implements LifeCycleListener {
+  @Override
+  public void beforeCreateOnConnectionFactory(MethodExecutionInfo methodExecutionInfo) {
+    // callback at ConnectionFactory#create()
+  }
+  @Override
+  public void afterCloseOnConnection(MethodExecutionInfo methodExecutionInfo) {
+    // callback at Connection#close()
+  }
+}
+```
+On top of method and query interceptor API on `ProxyExecutionListener`, `LifeCycleListener`
+
 
 ## QueryExecutionInfoFormatter
 This class converts `QueryExecutionInfo` to `String`. Mainly used for preparing log entries.  

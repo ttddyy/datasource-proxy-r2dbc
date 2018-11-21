@@ -21,6 +21,10 @@ public class LifeCycleExecutionListener implements ProxyExecutionListener {
 
     private LifeCycleListener delegate;
 
+    public static LifeCycleExecutionListener of(LifeCycleListener lifeCycleListener) {
+        return new LifeCycleExecutionListener(lifeCycleListener);
+    }
+
     public LifeCycleExecutionListener(LifeCycleListener delegate) {
         this.delegate = delegate;
     }

@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Copy of MethodExecutionContext from datasource-proxy and some modification.
+ * Hold method execution related information.
  *
  * @author Tadaya Tsuyukubo
  */
@@ -30,7 +30,7 @@ public class MethodExecutionInfo {
      *
      * Mainly used for passing values between before and after listener callback.
      *
-     * @param key key
+     * @param key   key
      * @param value value
      */
     public void addCustomValue(String key, Object value) {

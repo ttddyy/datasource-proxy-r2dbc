@@ -10,9 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Copy from datasource-proxy
- *
- * removed some of the attributes.
+ * Hold query execution related information.
  *
  * @author Tadaya Tsuyukubo
  */
@@ -33,15 +31,15 @@ public class QueryExecutionInfo {
     private ProxyEventType proxyEventType;
     private int currentResultCount;
     private Result currentResult;
-    private Map<String, Object> customValues = new HashMap<>();
     private List<QueryInfo> queries = new ArrayList<>();
+    private Map<String, Object> customValues = new HashMap<>();
 
     /**
      * Store key/value pair.
      *
      * Mainly used for passing values between before and after listener callback.
      *
-     * @param key key
+     * @param key   key
      * @param value value
      */
     public void addCustomValue(String key, Object value) {

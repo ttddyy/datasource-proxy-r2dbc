@@ -253,7 +253,7 @@ datasource-proxy-r2dbc is developed on following versions.
 
 | datasource-proxy-r2dbc |       r2dbc-spi      |   reactor-core  |
 |:----------------------:|:--------------------:|:---------------:|
-| 0.1-SNAPSHOT           | 1.0.0.BUILD-SNAPSHOT | Californium-SR2 |
+| 0.1-SNAPSHOT           | 1.0.0.M6             | Californium-SR2 |
 
 
 ## Maven and Gradle

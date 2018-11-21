@@ -60,12 +60,12 @@
     <release.version>2.5.3</release.version>
 
     <!-- Main dependency versions -->
-    <r2dbc-spi.version>1.0.0.BUILD-SNAPSHOT</r2dbc-spi.version>
+    <r2dbc-spi.version>1.0.0.M6</r2dbc-spi.version>
     <reactor.version>Californium-SR2</reactor.version>
 
     <!-- Test dependency versions -->
-    <r2dbc-postgresql.version>1.0.0.BUILD-SNAPSHOT</r2dbc-postgresql.version>
-    <r2dbc-client.version>1.0.0.BUILD-SNAPSHOT</r2dbc-client.version>
+    <r2dbc-postgresql.version>1.0.0.M6</r2dbc-postgresql.version>
+    <r2dbc-client.version>1.0.0.M6</r2dbc-client.version>
 
     <junit.jupiter.version>5.3.1</junit.jupiter.version>
     <mockito.version>2.23.0</mockito.version>

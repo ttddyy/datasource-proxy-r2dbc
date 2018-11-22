@@ -1,5 +1,7 @@
 # datasource-proxy-r2dbc
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.ttddyy/datasource-proxy-r2dbc/badge.svg)][maven-central-badge]
+
 [datasource-proxy][datasource-proxy] for [R2DBC][r2dbc-spi].
 
 ## About
@@ -475,7 +477,7 @@ Query:["INSERT INTO test VALUES ($1)"] Bindings:[(200)]
 
 ----
 
+[maven-central-badge]: https://maven-badges.herokuapp.com/maven-central/net.ttddyy/datasource-proxy-r2dbc/ 
 [datasource-proxy]: https://github.com/ttddyy/datasource-proxy
 [jitpack]: https://jitpack.io/#ttddyy/datasource-proxy-r2dbc/
 [r2dbc-spi]: https://github.com/r2dbc/r2dbc-spi 
-

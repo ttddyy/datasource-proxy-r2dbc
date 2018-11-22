@@ -159,6 +159,10 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <!-- Ignore javadoc warning for now. TODO: fix javadoc warnings -->
+          <doclint>none</doclint>
+        </configuration>
       </plugin>
 
       <plugin>

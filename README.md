@@ -192,22 +192,25 @@ and `afterQuery()`.(Specifically when returned result publisher is subscribed.)
 
 `LifeCycleListener` provides before/after methods for all methods defined on `ConnectionFactory`,
 `Connection`, `Batch`, and `Statement`, as well as query executions.
+This listener is built on top of method and query interceptor API on `ProxyExecutionListener`.
 
-For example, if you want know the creation of connection and close of it,
+For example, if you want know the creation of connection and close of it:
 
 ```java
 public class ConnectionStartToEndListener implements LifeCycleListener {
+
   @Override
   public void beforeCreateOnConnectionFactory(MethodExecutionInfo methodExecutionInfo) {
     // callback at ConnectionFactory#create()
   }
+
   @Override
   public void afterCloseOnConnection(MethodExecutionInfo methodExecutionInfo) {
     // callback at Connection#close()
   }
-}
+
+  }
 ```
-On top of method and query interceptor API on `ProxyExecutionListener`, `LifeCycleListener`
 
 
 ## QueryExecutionInfoFormatter
@@ -300,7 +303,25 @@ datasource-proxy-r2dbc is developed on following versions.
 
 | datasource-proxy-r2dbc |       r2dbc-spi      |   reactor-core  |
 |:----------------------:|:--------------------:|:---------------:|
-| 0.1-SNAPSHOT           | 1.0.0.M6             | Californium-SR2 |
+| 0.2-SNAPSHOT           | 1.0.0.M6             | Californium-SR2 |
+| 0.1                    | 1.0.0.M6             | Californium-SR2 |
+
+*NOTE:*  
+Currently, it is built on milestone release of r2dbc-spi.  
+To get milestone releases, spring-milestones repo needs to be added.
+
+```xml
+<repositories>
+  <repository>
+    <id>spring-milestones</id>
+    <name>Spring Milestones</name>
+    <url>https://repo.spring.io/milestone</url>
+    <snapshots>
+      <enabled>false</enabled>
+    </snapshots>
+  </repository>
+</repositories>
+```
 
 
 ## Maven and Gradle

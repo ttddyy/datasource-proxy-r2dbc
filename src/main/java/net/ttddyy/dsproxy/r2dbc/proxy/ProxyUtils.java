@@ -1,8 +1,10 @@
-package net.ttddyy.dsproxy.r2dbc.core;
+package net.ttddyy.dsproxy.r2dbc.proxy;
 
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionHolder;
+import net.ttddyy.dsproxy.r2dbc.proxy.ProxyObject;
 
 /**
  * @author Tadaya Tsuyukubo

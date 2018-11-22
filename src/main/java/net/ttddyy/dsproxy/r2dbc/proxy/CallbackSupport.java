@@ -1,4 +1,4 @@
-package net.ttddyy.dsproxy.r2dbc;
+package net.ttddyy.dsproxy.r2dbc.proxy;
 
 import io.r2dbc.spi.Result;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;

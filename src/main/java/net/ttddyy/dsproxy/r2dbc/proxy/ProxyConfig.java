@@ -1,4 +1,4 @@
-package net.ttddyy.dsproxy.r2dbc;
+package net.ttddyy.dsproxy.r2dbc.proxy;
 
 import net.ttddyy.dsproxy.r2dbc.core.CompositeProxyExecutionListener;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionIdManager;

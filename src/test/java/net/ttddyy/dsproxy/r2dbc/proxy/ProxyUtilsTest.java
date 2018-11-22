@@ -1,10 +1,12 @@
-package net.ttddyy.dsproxy.r2dbc.core;
+package net.ttddyy.dsproxy.r2dbc.proxy;
 
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
-import net.ttddyy.dsproxy.r2dbc.JdkProxyFactory;
-import net.ttddyy.dsproxy.r2dbc.ProxyConfig;
+import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
+import net.ttddyy.dsproxy.r2dbc.proxy.JdkProxyFactory;
+import net.ttddyy.dsproxy.r2dbc.proxy.ProxyConfig;
+import net.ttddyy.dsproxy.r2dbc.proxy.ProxyUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertSame;

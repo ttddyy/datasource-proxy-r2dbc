@@ -22,6 +22,8 @@ import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Result;
+import net.ttddyy.dsproxy.r2dbc.support.MethodExecutionInfoFormatter;
+import net.ttddyy.dsproxy.r2dbc.support.QueryExecutionInfoFormatter;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;

@@ -1,4 +1,4 @@
-package net.ttddyy.dsproxy.r2dbc;
+package net.ttddyy.dsproxy.r2dbc.proxy;
 
 import io.r2dbc.spi.Statement;
 import net.ttddyy.dsproxy.r2dbc.core.Binding;
@@ -6,7 +6,6 @@ import net.ttddyy.dsproxy.r2dbc.core.BindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.Bindings;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.support.LastExecutionAwareListener;
-import net.ttddyy.dsproxy.r2dbc.core.ProxyObject;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
 import org.junit.jupiter.api.Test;

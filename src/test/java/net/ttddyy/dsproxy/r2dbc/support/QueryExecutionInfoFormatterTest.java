@@ -1,4 +1,4 @@
-package net.ttddyy.dsproxy.r2dbc;
+package net.ttddyy.dsproxy.r2dbc.support;
 
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue.NullBindingValue;
 import net.ttddyy.dsproxy.r2dbc.core.BindingValue.SimpleBindingValue;
@@ -7,6 +7,7 @@ import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.QueryInfo;
+import net.ttddyy.dsproxy.r2dbc.support.QueryExecutionInfoFormatter;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;

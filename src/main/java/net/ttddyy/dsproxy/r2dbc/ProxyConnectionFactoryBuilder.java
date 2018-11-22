@@ -4,6 +4,7 @@ import io.r2dbc.spi.ConnectionFactory;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
+import net.ttddyy.dsproxy.r2dbc.proxy.ProxyConfig;
 import net.ttddyy.dsproxy.r2dbc.support.LifeCycleExecutionListener;
 import net.ttddyy.dsproxy.r2dbc.support.LifeCycleListener;
 import reactor.core.publisher.Mono;

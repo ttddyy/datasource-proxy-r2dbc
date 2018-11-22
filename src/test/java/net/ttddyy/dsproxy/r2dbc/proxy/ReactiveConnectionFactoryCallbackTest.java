@@ -1,4 +1,4 @@
-package net.ttddyy.dsproxy.r2dbc;
+package net.ttddyy.dsproxy.r2dbc.proxy;
 
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
@@ -7,7 +7,6 @@ import net.ttddyy.dsproxy.r2dbc.core.ConnectionIdManager;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
 import net.ttddyy.dsproxy.r2dbc.support.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
-import net.ttddyy.dsproxy.r2dbc.core.ProxyObject;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.springframework.util.ReflectionUtils;

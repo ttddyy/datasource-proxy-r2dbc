@@ -72,8 +72,7 @@ public class CallbackSupportTest {
 
         ProxyFactory proxyFactory = mock(ProxyFactory.class);
 
-        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
-        compositeListener.add(listener);
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener(listener);
         when(this.proxyConfig.getListeners()).thenReturn(compositeListener);
         when(this.proxyConfig.getProxyFactory()).thenReturn(proxyFactory);
 
@@ -136,8 +135,7 @@ public class CallbackSupportTest {
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
         QueryExecutionInfo executionInfo = new QueryExecutionInfo();
 
-        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
-        compositeListener.add(listener);
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener(listener);
         when(this.proxyConfig.getListeners()).thenReturn(compositeListener);
 
         // publisher that throws exception
@@ -182,8 +180,7 @@ public class CallbackSupportTest {
 
         ProxyFactory proxyFactory = mock(ProxyFactory.class);
 
-        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
-        compositeListener.add(listener);
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener(listener);
         when(this.proxyConfig.getListeners()).thenReturn(compositeListener);
         when(this.proxyConfig.getProxyFactory()).thenReturn(proxyFactory);
 
@@ -263,8 +260,7 @@ public class CallbackSupportTest {
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
         QueryExecutionInfo executionInfo = new QueryExecutionInfo();
 
-        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
-        compositeListener.add(listener);
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener(listener);
         when(this.proxyConfig.getListeners()).thenReturn(compositeListener);
 
         // produce multiple results

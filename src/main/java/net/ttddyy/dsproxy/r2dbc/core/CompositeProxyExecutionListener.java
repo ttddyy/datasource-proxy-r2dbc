@@ -1,6 +1,7 @@
 package net.ttddyy.dsproxy.r2dbc.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -11,6 +12,10 @@ import java.util.List;
  */
 public class CompositeProxyExecutionListener implements ProxyExecutionListener {
     private List<ProxyExecutionListener> listeners = new ArrayList<>();
+
+    public CompositeProxyExecutionListener(ProxyExecutionListener... listeners) {
+        this.listeners.addAll(Arrays.asList(listeners));
+    }
 
     @Override
     public void onMethodExecution(MethodExecutionInfo executionInfo) {

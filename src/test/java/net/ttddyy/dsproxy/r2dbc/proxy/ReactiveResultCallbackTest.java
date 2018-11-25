@@ -35,8 +35,7 @@ public class ReactiveResultCallbackTest {
     @Test
     void map() throws Throwable {
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
-        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
-        compositeListener.add(listener);
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener(listener);
 
         QueryExecutionInfo queryExecutionInfo = new QueryExecutionInfo();
         ProxyConfig proxyConfig = new ProxyConfig();
@@ -104,8 +103,7 @@ public class ReactiveResultCallbackTest {
     @Test
     void mapWithPublisherException() throws Throwable {
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
-        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
-        compositeListener.add(listener);
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener(listener);
 
         QueryExecutionInfo queryExecutionInfo = new QueryExecutionInfo();
         ProxyConfig proxyConfig = new ProxyConfig();
@@ -151,8 +149,7 @@ public class ReactiveResultCallbackTest {
     @Test
     void mapWithEmptyPublisher() throws Throwable {
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
-        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
-        compositeListener.add(listener);
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener(listener);
 
         QueryExecutionInfo queryExecutionInfo = new QueryExecutionInfo();
         ProxyConfig proxyConfig = new ProxyConfig();
@@ -187,8 +184,7 @@ public class ReactiveResultCallbackTest {
         // call to the "map()" method returns a publisher that fails(errors) at execution time
 
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
-        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
-        compositeListener.add(listener);
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener(listener);
 
         QueryExecutionInfo queryExecutionInfo = new QueryExecutionInfo();
         ProxyConfig proxyConfig = new ProxyConfig();

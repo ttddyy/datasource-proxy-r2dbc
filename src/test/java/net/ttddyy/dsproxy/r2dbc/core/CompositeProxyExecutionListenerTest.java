@@ -21,9 +21,7 @@ public class CompositeProxyExecutionListenerTest {
         this.listener1 = new LastExecutionAwareListener();
         this.listener2 = new LastExecutionAwareListener();
 
-        this.compositeListener = new CompositeProxyExecutionListener();
-        this.compositeListener.add(listener1);
-        this.compositeListener.add(listener2);
+        this.compositeListener = new CompositeProxyExecutionListener(this.listener1, this.listener2);
     }
 
     @Test

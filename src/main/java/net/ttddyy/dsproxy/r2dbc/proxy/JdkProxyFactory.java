@@ -3,9 +3,11 @@ package net.ttddyy.dsproxy.r2dbc.proxy;
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
+import io.r2dbc.spi.Result;
 import io.r2dbc.spi.Statement;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionHolder;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -51,6 +53,13 @@ public class JdkProxyFactory implements ProxyFactory {
         return (Statement<?>) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
                 new Class[]{Statement.class, ProxyObject.class, ConnectionHolder.class},
                 new StatementInvocationHandler(statement, query, connectionInfo, this.proxyConfig));
+    }
+
+    @Override
+    public Result createResult(Result result, QueryExecutionInfo queryExecutionInfo) {
+        return (Result) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+                new Class[]{Result.class, ProxyObject.class, ConnectionHolder.class},
+                new ResultInvocationHandler(result, queryExecutionInfo, this.proxyConfig));
     }
 
     public static class ConnectionFactoryInvocationHandler implements InvocationHandler {
@@ -101,6 +110,20 @@ public class JdkProxyFactory implements ProxyFactory {
 
         public StatementInvocationHandler(Statement<?> statement, String query, ConnectionInfo connectionInfo, ProxyConfig proxyConfig) {
             this.delegate = new ReactiveStatementCallback(statement, query, connectionInfo, proxyConfig);
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            return delegate.invoke(proxy, method, args);
+        }
+    }
+
+    public static class ResultInvocationHandler implements InvocationHandler {
+
+        private ReactiveResultCallback delegate;
+
+        public ResultInvocationHandler(Result result, QueryExecutionInfo queryExecutionInfo, ProxyConfig proxyConfig) {
+            this.delegate = new ReactiveResultCallback(result, queryExecutionInfo, proxyConfig);
         }
 
         @Override

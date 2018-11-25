@@ -73,7 +73,8 @@ final class PostgresqlExample implements Example<String> {
                         .onEachQueryResult(result -> {
                             result.doOnNext(executionInfo -> {
                                 int currentResultCount = executionInfo.getCurrentResultCount();
-                                Result currentResult = executionInfo.getCurrentResult();
+                                Object currentResult = executionInfo.getCurrentMappedResult();
+
                                 System.out.println("RESULT_NO=" + currentResultCount + " RESULT=" + currentResult);
                             }).subscribe();
                         })

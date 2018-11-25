@@ -2,16 +2,16 @@ package net.ttddyy.dsproxy.r2dbc.proxy;
 
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Result;
+import net.ttddyy.dsproxy.r2dbc.core.CompositeProxyExecutionListener;
 import net.ttddyy.dsproxy.r2dbc.core.ConnectionInfo;
-import net.ttddyy.dsproxy.r2dbc.proxy.CallbackSupport;
-import net.ttddyy.dsproxy.r2dbc.proxy.ProxyConfig;
-import net.ttddyy.dsproxy.r2dbc.support.LastExecutionAwareListener;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
 import net.ttddyy.dsproxy.r2dbc.core.ProxyEventType;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
+import net.ttddyy.dsproxy.r2dbc.support.LastExecutionAwareListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Publisher;
@@ -26,6 +26,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,7 +36,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,31 +70,29 @@ public class CallbackSupportTest {
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
         QueryExecutionInfo executionInfo = new QueryExecutionInfo();
 
-        // produce single result in order to trigger doOnNext
+        ProxyFactory proxyFactory = mock(ProxyFactory.class);
+
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
+        compositeListener.add(listener);
+        when(this.proxyConfig.getListeners()).thenReturn(compositeListener);
+        when(this.proxyConfig.getProxyFactory()).thenReturn(proxyFactory);
+
+        // when it creates a proxy for Result
+        Result mockResultProxy = mock(Result.class);
+        when(proxyFactory.createResult(any(), any())).thenReturn(mockResultProxy);
+
+        // produce single result
         Result mockResult = mock(Result.class);
-        Mono<Result> publisher = Mono.just(mockResult)
-                .doOnSubscribe(subscription -> {
-                    // this will be called AFTER listener.beforeQuery() but BEFORE emitting query result from this publisher.
-                    // verify BEFORE_QUERY
-                    assertEquals(ProxyEventType.BEFORE_QUERY, executionInfo.getProxyEventType());
-                    assertSame(executionInfo, listener.getBeforeQueryExecutionInfo());
+        Mono<Result> resultPublisher = Mono.just(mockResult);
 
-                    assertEquals(0, executionInfo.getCurrentResultCount());
-                    assertNull(executionInfo.getCurrentResult());
-                });
-
-        Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(publisher, listener, executionInfo);
+        Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(resultPublisher, executionInfo);
 
         // verifies result flux
         StepVerifier.create(result)
                 .expectSubscription()
                 .consumeNextWith(c -> {
-                    // verify EACH_QUERY_RESULT
-                    assertSame(mockResult, c);
-                    assertEquals(ProxyEventType.EACH_QUERY_RESULT, executionInfo.getProxyEventType());
-                    assertSame(executionInfo, listener.getEachQueryResultExecutionInfo());
-                    assertEquals(1, executionInfo.getCurrentResultCount());
-                    assertSame(mockResult, executionInfo.getCurrentResult());
+                    // verify produced result is the proxy result
+                    assertSame(mockResultProxy, c);
                 })
                 .expectComplete()
                 .verify();
@@ -115,8 +117,17 @@ public class CallbackSupportTest {
         assertTrue(executionInfo.isSuccess());
         assertNull(executionInfo.getThrowable());
 
-        assertEquals(1, executionInfo.getCurrentResultCount());
-        assertNull(executionInfo.getCurrentResult());
+        assertEquals(0, executionInfo.getCurrentResultCount());
+        assertNull(executionInfo.getCurrentMappedResult());
+
+
+        // verify the call to create a proxy result
+        ArgumentCaptor<Result> resultCaptor = ArgumentCaptor.forClass(Result.class);
+        verify(proxyFactory).createResult(resultCaptor.capture(), eq(executionInfo));
+
+        Result captureResult = resultCaptor.getValue();
+        assertSame(mockResult, captureResult);
+
     }
 
     @Test
@@ -125,11 +136,15 @@ public class CallbackSupportTest {
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
         QueryExecutionInfo executionInfo = new QueryExecutionInfo();
 
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
+        compositeListener.add(listener);
+        when(this.proxyConfig.getListeners()).thenReturn(compositeListener);
+
         // publisher that throws exception
         RuntimeException exception = new RuntimeException();
         Publisher<Result> publisher = TestPublisher.<Result>create().error(exception);
 
-        Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(publisher, listener, executionInfo);
+        Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(publisher, executionInfo);
 
         // verifies result flux
         StepVerifier.create(result)
@@ -165,6 +180,17 @@ public class CallbackSupportTest {
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
         QueryExecutionInfo executionInfo = new QueryExecutionInfo();
 
+        ProxyFactory proxyFactory = mock(ProxyFactory.class);
+
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
+        compositeListener.add(listener);
+        when(this.proxyConfig.getListeners()).thenReturn(compositeListener);
+        when(this.proxyConfig.getProxyFactory()).thenReturn(proxyFactory);
+
+        // when it creates a proxy for Result
+        Result mockResultProxy = mock(Result.class);
+        when(proxyFactory.createResult(any(), any())).thenReturn(mockResultProxy);
+
         // produce multiple results
         Result mockResult1 = mock(Result.class);
         Result mockResult2 = mock(Result.class);
@@ -177,37 +203,24 @@ public class CallbackSupportTest {
                     assertSame(executionInfo, listener.getBeforeQueryExecutionInfo());
 
                     assertEquals(0, executionInfo.getCurrentResultCount());
-                    assertNull(executionInfo.getCurrentResult());
+                    assertNull(executionInfo.getCurrentMappedResult());
                 });
 
-        Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(publisher, listener, executionInfo);
+        Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(publisher, executionInfo);
 
+        // result should return a publisher that emits 3 proxy results
         // verifies result flux
         StepVerifier.create(result)
                 .expectSubscription()
                 .assertNext(c -> {
-                    // first result
-                    assertSame(mockResult1, c);
-                    assertEquals(ProxyEventType.EACH_QUERY_RESULT, executionInfo.getProxyEventType());
-                    assertSame(executionInfo, listener.getEachQueryResultExecutionInfo());
-                    assertSame(1, executionInfo.getCurrentResultCount());
-                    assertEquals(mockResult1, executionInfo.getCurrentResult());
+                    assertSame(mockResultProxy, c, "first result");
                 })
                 .assertNext(c -> {
-                    // second result
-                    assertSame(mockResult2, c);
-                    assertEquals(ProxyEventType.EACH_QUERY_RESULT, executionInfo.getProxyEventType());
-                    assertSame(executionInfo, listener.getEachQueryResultExecutionInfo());
-                    assertSame(2, executionInfo.getCurrentResultCount());
-                    assertEquals(mockResult2, executionInfo.getCurrentResult());
+                    assertSame(mockResultProxy, c, "second result");
                 })
                 .assertNext(c -> {
-                    // third result
-                    assertSame(mockResult3, c);
-                    assertEquals(ProxyEventType.EACH_QUERY_RESULT, executionInfo.getProxyEventType());
-                    assertSame(executionInfo, listener.getEachQueryResultExecutionInfo());
-                    assertSame(3, executionInfo.getCurrentResultCount());
-                    assertEquals(mockResult3, executionInfo.getCurrentResult());
+                    assertSame(mockResultProxy, c, "third result");
+
                 })
                 .expectComplete()
                 .verify();
@@ -232,9 +245,16 @@ public class CallbackSupportTest {
         assertTrue(executionInfo.isSuccess());
         assertNull(executionInfo.getThrowable());
 
-        assertEquals(3, executionInfo.getCurrentResultCount());
-        assertNull(executionInfo.getCurrentResult());
+        assertEquals(0, executionInfo.getCurrentResultCount());
+        assertNull(executionInfo.getCurrentMappedResult());
 
+
+        // verify the call to create proxy result
+        ArgumentCaptor<Result> resultCaptor = ArgumentCaptor.forClass(Result.class);
+        verify(proxyFactory, times(3)).createResult(resultCaptor.capture(), eq(executionInfo));
+
+        List<Result> captured = resultCaptor.getAllValues();
+        assertThat(captured).hasSize(3).containsExactly(mockResult1, mockResult2, mockResult3);
     }
 
     @Test
@@ -242,6 +262,10 @@ public class CallbackSupportTest {
 
         LastExecutionAwareListener listener = new LastExecutionAwareListener();
         QueryExecutionInfo executionInfo = new QueryExecutionInfo();
+
+        CompositeProxyExecutionListener compositeListener = new CompositeProxyExecutionListener();
+        compositeListener.add(listener);
+        when(this.proxyConfig.getListeners()).thenReturn(compositeListener);
 
         // produce multiple results
         Flux<Result> publisher = Flux.<Result>empty()
@@ -252,11 +276,11 @@ public class CallbackSupportTest {
                     assertSame(executionInfo, listener.getBeforeQueryExecutionInfo());
 
                     assertEquals(0, executionInfo.getCurrentResultCount());
-                    assertNull(executionInfo.getCurrentResult());
+                    assertNull(executionInfo.getCurrentMappedResult());
                 });
         ;
 
-        Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(publisher, listener, executionInfo);
+        Flux<? extends Result> result = this.callbackSupport.interceptQueryExecution(publisher, executionInfo);
 
         // verifies result flux
         StepVerifier.create(result)
@@ -286,7 +310,7 @@ public class CallbackSupportTest {
         assertNull(executionInfo.getThrowable());
 
         assertEquals(0, executionInfo.getCurrentResultCount());
-        assertNull(executionInfo.getCurrentResult());
+        assertNull(executionInfo.getCurrentMappedResult());
 
     }
 

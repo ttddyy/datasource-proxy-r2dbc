@@ -8,6 +8,7 @@ import net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener;
 import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,7 +17,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -204,14 +204,13 @@ public abstract class CallbackSupport {
     /**
      * Augment query execution result to hook up listener lifecycle.
      */
-    protected Flux<? extends Result> interceptQueryExecution(Publisher<? extends Result> flux,
-                                                             ProxyExecutionListener listener, QueryExecutionInfo executionInfo) {
+    protected Flux<? extends Result> interceptQueryExecution(Publisher<? extends Result> flux, QueryExecutionInfo executionInfo) {
+
+        ProxyExecutionListener listener = this.proxyConfig.getListeners();
 
         AtomicReference<Instant> startTimeHolder = new AtomicReference<>();
 
-        AtomicInteger resultCount = new AtomicInteger(0);
-
-        return Flux.empty()
+        Flux<? extends Result> queryExecutionFlux = Flux.empty()
                 .ofType(Result.class)
                 .doOnSubscribe(s -> {
 
@@ -223,37 +222,13 @@ public abstract class CallbackSupport {
                     executionInfo.setThreadName(threadName);
                     executionInfo.setThreadId(threadId);
 
-                    executionInfo.setCurrentResult(null);
+                    executionInfo.setCurrentMappedResult(null);
 
                     executionInfo.setProxyEventType(ProxyEventType.BEFORE_QUERY);
 
                     listener.onQueryExecution(executionInfo);
                 })
                 .concatWith(flux)
-                .doOnNext(result -> {
-                    // on each query result
-
-                    Instant startTime = startTimeHolder.get();
-                    Instant currentTime = this.clock.instant();
-
-                    Duration executionDuration = Duration.between(startTime, currentTime);
-                    executionInfo.setExecuteDuration(executionDuration);
-
-                    String threadName = Thread.currentThread().getName();
-                    long threadId = Thread.currentThread().getId();
-                    executionInfo.setThreadName(threadName);
-                    executionInfo.setThreadId(threadId);
-
-                    executionInfo.setProxyEventType(ProxyEventType.EACH_QUERY_RESULT);
-
-                    executionInfo.setCurrentResult(result);
-
-                    int count = resultCount.incrementAndGet();
-                    executionInfo.setCurrentResultCount(count);
-
-                    listener.eachQueryResult(executionInfo);
-
-                })
                 .doOnComplete(() -> {
                     executionInfo.setSuccess(true);
                 })
@@ -274,12 +249,18 @@ public abstract class CallbackSupport {
                     executionInfo.setThreadName(threadName);
                     executionInfo.setThreadId(threadId);
 
-                    executionInfo.setCurrentResult(null);
+                    executionInfo.setCurrentMappedResult(null);
 
                     executionInfo.setProxyEventType(ProxyEventType.AFTER_QUERY);
 
                     listener.onQueryExecution(executionInfo);
                 });
+
+        ProxyFactory proxyFactory = this.proxyConfig.getProxyFactory();
+
+        // return a publisher that returns proxy Result
+        return Flux.from(queryExecutionFlux)
+                .flatMap(queryResult -> Mono.just(proxyFactory.createResult(queryResult, executionInfo)));
 
     }
 

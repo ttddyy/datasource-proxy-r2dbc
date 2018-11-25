@@ -63,7 +63,7 @@ public class ReactiveBatchCallback extends CallbackSupport {
             // API defines "execute()" returns a publisher
             Publisher<? extends Result> publisher = (Publisher<? extends Result>) result;
 
-            return interceptQueryExecution(publisher, proxyConfig.getListeners(), execInfo);
+            return interceptQueryExecution(publisher, execInfo);
         }
 
         return result;

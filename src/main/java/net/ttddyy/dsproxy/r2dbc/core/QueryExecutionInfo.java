@@ -30,7 +30,7 @@ public class QueryExecutionInfo {
     private long threadId;
     private ProxyEventType proxyEventType;
     private int currentResultCount;
-    private Result currentResult;
+    private Object currentMappedResult;
     private List<QueryInfo> queries = new ArrayList<>();
     private Map<String, Object> customValues = new HashMap<>();
 
@@ -193,18 +193,18 @@ public class QueryExecutionInfo {
     }
 
     /**
-     * Current query {@link Result} available for each-query-result-callback({@link ProxyExecutionListener#eachQueryResult(QueryExecutionInfo)}).
+     * Mapped query result available for each-query-result-callback({@link ProxyExecutionListener#eachQueryResult(QueryExecutionInfo)}).
      *
      * For before and after query execution({@link ProxyExecutionListener#beforeQuery(QueryExecutionInfo)}
      * and {@link ProxyExecutionListener#afterQuery(QueryExecutionInfo)), this returns {@code null}.
      *
      * @return
      */
-    public Result getCurrentResult() {
-        return currentResult;
+    public Object getCurrentMappedResult() {
+        return currentMappedResult;
     }
 
-    public void setCurrentResult(Result currentResult) {
-        this.currentResult = currentResult;
+    public void setCurrentMappedResult(Object currentResult) {
+        this.currentMappedResult = currentResult;
     }
 }

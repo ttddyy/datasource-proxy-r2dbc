@@ -136,6 +136,21 @@ public interface LifeCycleListener {
     }
 
     //
+    // For Result
+    //
+    default void beforeGetRowsUpdatedOnResult(MethodExecutionInfo methodExecutioninfo) {
+    }
+
+    default void afterGetRowsUpdatedOnResult(MethodExecutionInfo methodExecutioninfo) {
+    }
+
+    default void beforeMapOnResult(MethodExecutionInfo methodExecutioninfo) {
+    }
+
+    default void afterMapOnResult(MethodExecutionInfo methodExecutioninfo) {
+    }
+
+    //
     // For query execution
     //
 

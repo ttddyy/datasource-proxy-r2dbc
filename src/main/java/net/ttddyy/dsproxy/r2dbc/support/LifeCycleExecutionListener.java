@@ -3,6 +3,7 @@ package net.ttddyy.dsproxy.r2dbc.support;
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
+import io.r2dbc.spi.Result;
 import io.r2dbc.spi.Statement;
 import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
@@ -164,9 +165,21 @@ public class LifeCycleExecutionListener implements ProxyExecutionListener {
                     this.delegate.afterExecuteOnStatement(executionInfo);
                 }
             }
+        } else if (Result.class.equals(methodDeclaringClass)) {
+            if ("getRowsUpdated".equals(methodName)) {
+                if (isBefore) {
+                    this.delegate.beforeGetRowsUpdatedOnResult(executionInfo);
+                } else {
+                    this.delegate.afterGetRowsUpdatedOnResult(executionInfo);
+                }
+            } else if ("map".equals(methodName)) {
+                if (isBefore) {
+                    this.delegate.beforeMapOnResult(executionInfo);
+                } else {
+                    this.delegate.afterMapOnResult(executionInfo);
+                }
+            }
         }
-
-        // TODO: handle Result interface
 
     }
 

@@ -53,8 +53,6 @@ public class ReactiveResultCallback extends CallbackSupport {
                             return;
                         }
 
-                        // TODO: consider execution duration
-
                         int count = resultCount.incrementAndGet();
 
                         if (signal.isOnNext()) {

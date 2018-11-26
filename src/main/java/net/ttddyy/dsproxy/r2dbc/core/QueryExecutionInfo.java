@@ -139,6 +139,11 @@ public class QueryExecutionInfo {
         this.bindingsSize = bindingsSize;
     }
 
+    /**
+     * Time that took queries to execute.
+     *
+     * @return query execution duration
+     */
     public Duration getExecuteDuration() {
         return executeDuration;
     }

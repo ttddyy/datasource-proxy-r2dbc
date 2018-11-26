@@ -45,6 +45,8 @@ public class LifeCycleExecutionListener implements ProxyExecutionListener {
         String methodName = method.getName();
         Class<?> methodDeclaringClass = method.getDeclaringClass();
 
+        // TODO: may change to call them reflectively
+
         if (ConnectionFactory.class.equals(methodDeclaringClass)) {
             // ConnectionFactory methods
             if ("create".equals(methodName)) {

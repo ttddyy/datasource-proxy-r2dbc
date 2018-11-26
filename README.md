@@ -10,8 +10,8 @@ Provide listeners that receive callbacks of query executions and method invocati
 
 Callbacks are:
 - Before/After query executions when `Batch#execute()` or `Statement#execute()` is called.
-- Before/After any method calls on `ConnectionFactory`, `Connection`, `Batch` and `Statement`. 
-- (Each query result emitted by `Publisher<? extends Result>`.) (TBD)
+- Before/After any method calls on `ConnectionFactory`, `Connection`, `Batch`, `Statement` and `Result`. 
+- Each mapped query result emitted by `Publisher<? extends Result>`.
 
 Here is sample use cases for listeners:
 - Query logging
@@ -72,22 +72,19 @@ There are two types of slow query detection.
 Former is simple. On `afterQuery` callback, check the execution time.
 If it took more than threashold, perform an action such as logging, send notification, etc. 
 
-To perform some action _while_ query is still executing and passed threashold time, one implementation
+To perform some action _while_ query is still executing and it has passed the threashold time, one implementation
 is to create a watcher that checks running queries and notify ones exceeded the threshold.  
 It is currently in plan to port [`SlowQueryListener` from datasource-proxy](http://ttddyy.github.io/datasource-proxy/docs/current/user-guide/#_slow_query_logging_listener). 
 
 
 ### Method tracing
 
-When any methods on `ConnectionFactory`, `Connection`, `Batch`, or `Statement` are called,
-listeners receive callbacks on before and after invocations.
+When any methods on proxy classes(`ConnectionFactory`, `Connection`, `Batch`, `Statement`, or `Result`)
+are called, listeners receive callbacks on before and after invocations.
 
 Below output simply printed out the method execution information(`MethodExecutionInfo`)
 at each method invocation.  
 Essentially, this shows interaction with R2DBC SPI. 
-
-You could even call distributed tracing system to create span for the actions such as
-connection open/close.
 
 *Sample: Execution with transaction (see [sample](#sample)):*
 ```sql
@@ -183,17 +180,17 @@ void eachQueryResult(QueryExecutionInfo execInfo);
 `MethodExecutionInfo` and `QueryExecutionInfo` contains contextual information about the
 method/query execution.
 
-Any method calls on proxied `ConnectionFactory`, `Connection`, `Batch`, and `Statement`
+Any method calls on proxied `ConnectionFactory`, `Connection`, `Batch`, `Statement`, and `Result`
 triggers method callbacks - `beforeMethod()` and `afterMethod()`.  
 `Batch#execute()` and `Statement#execute()` triggers query callbacks - `beforeQuery()`
 and `afterQuery()`.(Specifically when returned result publisher is subscribed.)  
-`eachQueryResult()` is called on each query result while being subscribed.
+`eachQueryResult()` is called on each mapped query result when `Result#map()` is subscribed.
 
 
 ### LifeCycleListener
 
 `LifeCycleListener` provides before/after methods for all methods defined on `ConnectionFactory`,
-`Connection`, `Batch`, and `Statement`, as well as query executions.
+`Connection`, `Batch`, `Statement`, and `Result`, as well as query executions and result processing.
 This listener is built on top of method and query interceptor API on `ProxyExecutionListener`.
 
 For example, if you want know the creation of connection and close of it:
@@ -211,7 +208,7 @@ public class ConnectionStartToEndListener implements LifeCycleListener {
     // callback at Connection#close()
   }
 
-  }
+}
 ```
 
 
@@ -278,7 +275,7 @@ ConnectionFactory proxyConnectionFactory =
       ...   // callback after method execution
     })
     .onEachQueryResult(mono -> {
-      ...   // callback for each result 
+      ...   // callback for each mapped result 
     })
     .onAfterQuery(mono -> {
       ...  //  callback after query execution

@@ -3,6 +3,8 @@ package net.ttddyy.dsproxy.r2dbc.core;
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Statement;
 
+import java.util.function.BiFunction;
+
 /**
  * Listener interface that is called by proxy on {@link io.r2dbc.spi.Connection},
  * {@link io.r2dbc.spi.Statement}, or {@link io.r2dbc.spi.Batch}.
@@ -92,7 +94,9 @@ public interface ProxyExecutionListener {
     /**
      * Called on processing each query {@link io.r2dbc.spi.Result}.
      *
-     * While subscribing query results, this callback is called per result.
+     * While processing query results with {@link io.r2dbc.spi.Result#map(BiFunction)}, this callback
+     * is called per result.
+     * {@link QueryExecutionInfo#getCurrentResult()} contains the mapped result.
      *
      * @param execInfo query execution context
      */

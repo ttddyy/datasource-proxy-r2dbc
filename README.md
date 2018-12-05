@@ -70,9 +70,9 @@ There are two types of slow query detection.
 - Detect slow query *WHILE* query is running.
 
 Former is simple. On `afterQuery` callback, check the execution time.
-If it took more than threashold, perform an action such as logging, send notification, etc. 
+If it took more than threshold, perform an action such as logging, send notification, etc.
 
-To perform some action _while_ query is still executing and it has passed the threashold time, one implementation
+To perform some action _while_ query is still executing and it has passed the threshold time, one implementation
 is to create a watcher that checks running queries and notify ones exceeded the threshold.  
 It is currently in plan to port [`SlowQueryListener` from datasource-proxy](http://ttddyy.github.io/datasource-proxy/docs/current/user-guide/#_slow_query_logging_listener). 
 
@@ -372,16 +372,16 @@ ConnectionFactory proxyConnectionFactory =
 
 ### Detect slow query AFTER query has executed
 
-On after query execution, check whether the query execution time has exceeded the threashold
+On after query execution, check whether the query execution time has exceeded the threshold
 time, then perform any action.  
 
 ```java
-Duration threashold = Duration.of(...);
+Duration threshold = Duration.of(...);
 
 ConnectionFactory proxyConnectionFactory =
   ProxyConnectionFactoryBuilder.create(connectionFactory)
     .onAfterQuery(mono -> mono
-       .filter(execInfo -> threashold.minus(execInfo.getExecuteDuration()).isNegative())
+       .filter(execInfo -> threshold.minus(execInfo.getExecuteDuration()).isNegative())
        .doOnNext(execInfo -> {
          // slow query logic
        })

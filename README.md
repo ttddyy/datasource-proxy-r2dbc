@@ -120,9 +120,36 @@ Sample project: [Tracing with sleuth](https://github.com/ttddyy/datasource-proxy
 
 On every callback, any obtained information can update metrics.
 
-For example, on method execution, number of opened connections, number of rollbacks, 
-method execution time, etc; for query execution, number of queries, type of query
-(SELECT, DELETE, ...), execution time, etc. can be used for metrics. 
+For example:
+- Number of opened connections
+- Number of rollbacks
+- Method execution time 
+- Number of queries
+- Type of query (SELECT, DELETE, ...) 
+- Query execution time
+- etc.
+
+
+Sample project: [Metrics with micrometer (and log slow queries)](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/tree/master/dsp-r2dbc-metrics-micrometer)
+
+This sample project populates following metrics:
+- Time took to create a connection
+- Commit and rollback counts
+- Executed query count
+- Slow query count
+
+The key implementation is [MetricsExecutionListener](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/blob/master/dsp-r2dbc-metrics-micrometer/src/main/java/net/ttddyy/MetricsExecutionListener.java)
+which populates micrometer metrics and logs slow queries.
+
+*Connection metrics on JMX*
+![Connection JMX](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/raw/master/dsp-r2dbc-metrics-micrometer/images/jmx-connection.png)
+
+*Query metrics on JMX:*
+![Query JMX](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/raw/master/dsp-r2dbc-metrics-micrometer/images/jmx-query.png)
+
+*Transaction metrics on actuator (`/actuator/metrics/r2dbc.transaction`):*
+![Transaction Actuator](https://github.com/ttddyy/datasource-proxy-r2dbc-samples/raw/master/dsp-r2dbc-metrics-micrometer/images/actuator-transaction.png)
+
 
 
 ### Assertion/Verification

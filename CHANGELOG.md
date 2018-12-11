@@ -3,4 +3,6 @@
 
 * Proxy `Result` class.
 
-* Update `ProxyExecutionListener#eachQueryResult()` implementation. 
+* Update `ProxyExecutionListener#eachQueryResult()` implementation.
+
+* Add `[before|after]Method()`, `[before|after]Query()` methods on `LifeCycleListener` 

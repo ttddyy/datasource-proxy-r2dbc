@@ -173,4 +173,65 @@ public interface LifeCycleListener {
     default void onEachQueryResult(QueryExecutionInfo queryExecutionInfo) {
 
     }
+
+    //
+    // For every method
+    //
+
+    /**
+     * Called at every method invocation.
+     *
+     * When any methods on proxied classes are called, this callback is called first. Then, corresponding
+     * beforeXxxOnYyy callback will be called.
+     *
+     * Analogous to {@link net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener#beforeMethod(MethodExecutionInfo)}
+     *
+     * @param methodExecutionInfo method execution info
+     */
+    default void beforeMethod(MethodExecutionInfo methodExecutionInfo) {
+    }
+
+    /**
+     * Called at every method invocation.
+     *
+     * When any methods on proxied classes are called and after actual method is invoked, corresponding
+     * afterXxxOnYyy callback is called, then this callback method will be invoked.
+     *
+     * Analogous to {@link net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener#afterMethod(MethodExecutionInfo)}
+     *
+     * @param methodExecutionInfo method execution info
+     */
+    default void afterMethod(MethodExecutionInfo methodExecutionInfo) {
+    }
+
+    //
+    // For every query
+    //
+
+    /**
+     * Called before execution of query.
+     *
+     * When query is executed, this callback method is called first, then {@link #beforeExecuteOnStatement(QueryExecutionInfo)}
+     * or {@link #beforeExecuteOnBatch(QueryExecutionInfo)} will be called.
+     *
+     * Analogous to {@link net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener#beforeQuery(QueryExecutionInfo)}
+     *
+     * @param queryExecutionInfo query execution info
+     */
+    default void beforeQuery(QueryExecutionInfo queryExecutionInfo) {
+    }
+
+    /**
+     * Called after execution of query.
+     *
+     * When query is executed, after original method is called, then {@link #afterExecuteOnStatement(QueryExecutionInfo)}
+     * or {@link #afterExecuteOnBatch(QueryExecutionInfo)}, then this method is invoked.
+     *
+     * Analogous to {@link net.ttddyy.dsproxy.r2dbc.core.ProxyExecutionListener#afterQuery(QueryExecutionInfo)}
+     *
+     * @param queryExecutionInfo query execution info
+     */
+    default void afterQuery(QueryExecutionInfo queryExecutionInfo) {
+    }
+
 }

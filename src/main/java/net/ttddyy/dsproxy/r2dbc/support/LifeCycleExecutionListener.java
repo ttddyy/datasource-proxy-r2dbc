@@ -32,12 +32,14 @@ public class LifeCycleExecutionListener implements ProxyExecutionListener {
 
     @Override
     public void beforeMethod(MethodExecutionInfo executionInfo) {
+        this.delegate.beforeMethod(executionInfo);
         methodCallback(executionInfo, true);
     }
 
     @Override
     public void afterMethod(MethodExecutionInfo executionInfo) {
         methodCallback(executionInfo, false);
+        this.delegate.afterMethod(executionInfo);
     }
 
     private void methodCallback(MethodExecutionInfo executionInfo, boolean isBefore) {
@@ -45,7 +47,6 @@ public class LifeCycleExecutionListener implements ProxyExecutionListener {
         String methodName = method.getName();
         Class<?> methodDeclaringClass = method.getDeclaringClass();
 
-        // TODO: may change to call them reflectively
 
         if (ConnectionFactory.class.equals(methodDeclaringClass)) {
             // ConnectionFactory methods
@@ -187,12 +188,14 @@ public class LifeCycleExecutionListener implements ProxyExecutionListener {
 
     @Override
     public void beforeQuery(QueryExecutionInfo execInfo) {
+        this.delegate.beforeQuery(execInfo);
         queryCallback(execInfo, true);
     }
 
     @Override
     public void afterQuery(QueryExecutionInfo execInfo) {
         queryCallback(execInfo, false);
+        this.delegate.afterQuery(execInfo);
     }
 
     private void queryCallback(QueryExecutionInfo execInfo, boolean isBefore) {

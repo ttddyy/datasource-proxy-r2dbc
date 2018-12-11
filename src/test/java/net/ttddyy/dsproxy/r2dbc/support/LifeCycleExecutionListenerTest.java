@@ -1,16 +1,20 @@
 package net.ttddyy.dsproxy.r2dbc.support;
 
+import net.ttddyy.dsproxy.r2dbc.core.ExecutionType;
 import net.ttddyy.dsproxy.r2dbc.core.MethodExecutionInfo;
+import net.ttddyy.dsproxy.r2dbc.core.QueryExecutionInfo;
 import org.aopalliance.intercept.MethodInterceptor;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.ArrayList;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -32,26 +36,14 @@ public class LifeCycleExecutionListenerTest {
     void methodInvocations(Class<?> clazz) {
         String className = clazz.getSimpleName();
 
-        AtomicReference<Method> invokedMethodHolder = new AtomicReference<>();
-
-        // use spring aop framework to create a proxy of LifeCycleListener that just keeps the
-        // invoked method
-        MethodInterceptor interceptor = invocation -> {
-            invokedMethodHolder.set(invocation.getMethod());
-            return null;  // don't proceed the proxy
-        };
-        ProxyFactory proxyFactory = new ProxyFactory();
-        proxyFactory.addAdvice(interceptor);
-        proxyFactory.addInterface(LifeCycleListener.class);
-        LifeCycleListener lifeCycleListener = (LifeCycleListener) proxyFactory.getProxy();
-
+        List<Method> invokedMethods = new ArrayList<>();
+        LifeCycleListener lifeCycleListener = createLifeCycleListener(invokedMethods);
         LifeCycleExecutionListener listener = new LifeCycleExecutionListener(lifeCycleListener);
 
         MethodExecutionInfo methodExecutionInfo = mock(MethodExecutionInfo.class);
 
         Method[] declaredMethods = clazz.getDeclaredMethods();
         for (Method methodToInvoke : declaredMethods) {
-            Method invokedMethod;
             String methodName = methodToInvoke.getName();
 
             // beforeXxxOnYyy : Xxx is a capitalized method-name and Yyy is a capitalized class-name
@@ -64,25 +56,114 @@ public class LifeCycleExecutionListenerTest {
             // invoke beforeMethod()
             listener.beforeMethod(methodExecutionInfo);
 
-            // verify beforeMethod() invokes beforeXxxOnYyy() method
-            invokedMethod = invokedMethodHolder.get();
-            assertNotNull(invokedMethod);
-            assertEquals(LifeCycleListener.class, invokedMethod.getDeclaringClass());
-            assertEquals(expectedBeforeMethodName, invokedMethod.getName());
+            // first method is beforeMethod
+            // second method is beforeXxxOnYyy
+            assertThat(invokedMethods)
+                    .hasSize(2)
+                    .extracting(Method::getName)
+                    .containsExactly("beforeMethod", expectedBeforeMethodName)
+            ;
 
-
-            // verify afterMethod() invokes afterXxxOnYyy() method
-            listener.afterMethod(methodExecutionInfo);
-
-            invokedMethod = invokedMethodHolder.get();
-            assertNotNull(invokedMethod);
-            assertEquals(LifeCycleListener.class, invokedMethod.getDeclaringClass());
-            assertEquals(expectedAfterMethodName, invokedMethod.getName());
+            // extra check for beforeXxxOnYyy
+            Method beforeXxxOnYyy = invokedMethods.get(1);
+            assertEquals(LifeCycleListener.class, beforeXxxOnYyy.getDeclaringClass());
 
             // reset
-            invokedMethodHolder.set(null);
+            invokedMethods.clear();
+
+            listener.afterMethod(methodExecutionInfo);
+
+            // first method is afterXxxOnYyy
+            // second method is afterMethod
+            assertThat(invokedMethods)
+                    .hasSize(2)
+                    .extracting(Method::getName)
+                    .containsExactly(expectedAfterMethodName, "afterMethod")
+            ;
+
+            // extra check for afterXxxOnYyy
+            Method afterXxxOnYyy = invokedMethods.get(0);
+            assertEquals(LifeCycleListener.class, afterXxxOnYyy.getDeclaringClass());
+
+            // reset
+            invokedMethods.clear();
             reset(methodExecutionInfo);
         }
 
     }
+
+    @Test
+    void queryExecution() {
+
+        List<Method> invokedMethods = new ArrayList<>();
+        LifeCycleListener lifeCycleListener = createLifeCycleListener(invokedMethods);
+        LifeCycleExecutionListener listener = new LifeCycleExecutionListener(lifeCycleListener);
+
+        QueryExecutionInfo queryExecutionInfo;
+
+        // for Statement#execute
+        queryExecutionInfo = new QueryExecutionInfo();
+        queryExecutionInfo.setType(ExecutionType.STATEMENT);
+
+        // test beforeQuery
+        listener.beforeQuery(queryExecutionInfo);
+        verifyQueryExecutionInvocation(invokedMethods, "beforeQuery", "beforeExecuteOnStatement");
+
+        invokedMethods.clear();
+
+        // test afterQuery
+        listener.afterQuery(queryExecutionInfo);
+        verifyQueryExecutionInvocation(invokedMethods, "afterExecuteOnStatement", "afterQuery");
+
+        assertEquals(LifeCycleListener.class, invokedMethods.get(0).getDeclaringClass());
+        assertEquals(LifeCycleListener.class, invokedMethods.get(1).getDeclaringClass());
+
+        invokedMethods.clear();
+
+
+        // for Batch#execute
+        queryExecutionInfo = new QueryExecutionInfo();
+        queryExecutionInfo.setType(ExecutionType.BATCH);
+
+        // test beforeQuery
+        listener.beforeQuery(queryExecutionInfo);
+        verifyQueryExecutionInvocation(invokedMethods, "beforeQuery", "beforeExecuteOnBatch");
+        invokedMethods.clear();
+
+        // test afterQuery
+        listener.afterQuery(queryExecutionInfo);
+        verifyQueryExecutionInvocation(invokedMethods, "afterExecuteOnBatch", "afterQuery");
+
+    }
+
+    private void verifyQueryExecutionInvocation(List<Method> invokedMethods, String... expectedMethodNames) {
+        assertThat(invokedMethods)
+                .hasSize(2)
+                .extracting(Method::getName)
+                .containsExactly(expectedMethodNames)
+        ;
+
+        assertEquals(LifeCycleListener.class, invokedMethods.get(0).getDeclaringClass());
+        assertEquals(LifeCycleListener.class, invokedMethods.get(1).getDeclaringClass());
+
+    }
+
+    private LifeCycleListener createLifeCycleListener(List<Method> invokedMethods) {
+        // use spring aop framework to create a proxy of LifeCycleListener that just keeps the
+        // invoked methods
+        MethodInterceptor interceptor = invocation -> {
+            invokedMethods.add(invocation.getMethod());
+            return null;  // don't proceed the proxy
+        };
+
+        ProxyFactory proxyFactory = new ProxyFactory();
+        proxyFactory.addAdvice(interceptor);
+        proxyFactory.addInterface(LifeCycleListener.class);
+        return (LifeCycleListener) proxyFactory.getProxy();
+    }
+
+
+    // TODO: add test for onEachQueryResult
+
+
 }

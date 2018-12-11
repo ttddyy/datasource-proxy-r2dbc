@@ -184,7 +184,7 @@ Sample projects: [datasource-proxy-r2dbc-samples](https://github.com/ttddyy/data
 
 ## Listener API
 
-`ProxyExecutionListener` is the listener interface.
+`ProxyExecutionListener` is the foundation listener interface.
 This defines callbacks for method invocation, query execution, and query result processing.
 
 ```java
@@ -217,7 +217,8 @@ and `afterQuery()`.(Specifically when returned result publisher is subscribed.)
 ### LifeCycleListener
 
 `LifeCycleListener` provides before/after methods for all methods defined on `ConnectionFactory`,
-`Connection`, `Batch`, `Statement`, and `Result`, as well as query executions and result processing.
+`Connection`, `Batch`, `Statement`, and `Result`, as well as method executions(`beforeMethod`, `afterMethod`),
+query executions(`beforeQuery`, `afterQuery`) and result processing(`onEachQueryResult`).
 This listener is built on top of method and query interceptor API on `ProxyExecutionListener`.
 
 For example, if you want know the creation of connection and close of it:

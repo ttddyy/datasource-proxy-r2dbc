@@ -330,8 +330,8 @@ datasource-proxy-r2dbc is developed on following versions.
 
 | datasource-proxy-r2dbc |       r2dbc-spi      |   reactor-core  |
 |:----------------------:|:--------------------:|:---------------:|
-| 0.2-SNAPSHOT           | 1.0.0.M6             | Californium-SR2 |
-| 0.1                    | 1.0.0.M6             | Californium-SR2 |
+| 0.3-SNAPSHOT           | 1.0.0.M6             | Californium-SR2 |
+| 0.1, 0.2               | 1.0.0.M6             | Californium-SR2 |
 
 *NOTE:*  
 Currently, it is built on milestone release of r2dbc-spi.  

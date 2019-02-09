@@ -1,12 +1,15 @@
-:arrow_down: :arrow_down: :arrow_down: :arrow_down: :arrow_down: :arrow_down: :arrow_down:
+:arrow_down: :arrow_down: :arrow_down: :arrow_down:
 
 __*** This project has migrated to [r2dbc-proxy][r2dbc-proxy] ***__
 
-:arrow_up: :arrow_up: :arrow_up: :arrow_up: :arrow_up: :arrow_up: :arrow_up:
+Samples with [r2dbc-proxy][r2dbc-proxy] are available here: [r2dbc-proxy-examples][r2dbc-proxy-examples]
+
+:arrow_up: :arrow_up: :arrow_up: :arrow_up:
 
 datasource-proxy-r2dbc supports _r2dbc-spi 1.0.0.M6_, for later versions of r2dbc-spi, please use [r2dbc-proxy][r2dbc-proxy]
 
 [r2dbc-proxy]: https://github.com/r2dbc/r2dbc-proxy
+[r2dbc-proxy-examples]: https://github.com/ttddyy/r2dbc-proxy-examples
 
 ----
 

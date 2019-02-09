@@ -1,4 +1,17 @@
+:arrow_down: :arrow_down: :arrow_down: :arrow_down: :arrow_down: :arrow_down: :arrow_down:
+
+__*** This project has migrated to [r2dbc-proxy][r2dbc-proxy] ***__
+
+:arrow_up: :arrow_up: :arrow_up: :arrow_up: :arrow_up: :arrow_up: :arrow_up:
+
+datasource-proxy-r2dbc supports _r2dbc-spi 1.0.0.M6_, for later versions of r2dbc-spi, please use [r2dbc-proxy][r2dbc-proxy]
+
+[r2dbc-proxy]: https://github.com/r2dbc/r2dbc-proxy
+
+----
+
 # datasource-proxy-r2dbc
+
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.ttddyy/datasource-proxy-r2dbc/badge.svg)][maven-central-badge]
 
